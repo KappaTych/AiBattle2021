@@ -146,7 +146,7 @@
                     continue;
                 let controllerScript = GetMapObjectByName(select.options[select.selectedIndex].text);
                 let controller = eval(controllerScript);
-                bots.push(new Bot(0, 0, 0, controller, "bot" + i + "Type"));
+                bots.push(new Bot(0, 0, 0, controller, "Bot " + i));
             }
             scene = new Scene(mapInfo, bots);
             UpdateRender();

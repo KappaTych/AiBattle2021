@@ -232,6 +232,9 @@ class Scene {
         for (let i = 0; i < this.bots.length; ++i) {
             let bot = this.bots[i];
             context.drawImage(bot.texture, bot.x * tileW, bot.y * tileH, tileW, tileH);
+            context.font = "normal 36px Verdana";
+            context.fillStyle = "#0000FF";
+            context.fillText(bot.name, bot.x * tileW, bot.y * tileH, tileW);
         }
 
         for (let i = 0; i < this.snowballs.length; ++i) {
@@ -245,6 +248,10 @@ class Scene {
             context.rect(topLeft.x * tileW, topLeft.y * tileH, (bottomRight.x - topLeft.x + 1) * tileW, (bottomRight.y - topLeft.y + 1) * tileH);
             context.fillStyle = "rgba(" + this.baseColors[i].r + "," + this.baseColors[i].g + "," + this.baseColors[i].b + "," + "0.4)";
             context.fill();
+
+            context.font = "normal 36px Verdana";
+            context.fillStyle = "#0000FF";
+            context.fillText("Base:" + i, topLeft.x * tileW, topLeft.y * tileH, tileW);
         }
     }
 }
