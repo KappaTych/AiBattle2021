@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Read Text File</title>
+    <link href="styles/style.css" rel="stylesheet" type="text/css">
+    <script src="scripts/ResourceLoader.js"></script>
+    <script src="scripts/GameObject.js"></script>
+    <script src="scripts/MovableObject.js"></script>
+    <script src="scripts/StaticObject.js"></script>
+    <script src="scripts/Scene.js"></script>
+</head>
+
+<body>
+    <table border="2" cellpadding="0" cellspacing="0" margin="auto" align="center" width="100%" height="100%" class="fixed">
+        <tr>
+            <td width="70%" height="100%">
+                <div class="scroll">
+                    <canvas id='main-window'></canvas>
+                </div>
+            </td>
+            <td width="30%" height="100%" vertical-align="top">
+                <div class="scroll">
+                    <div name="mapSelecter" align="left">
+                        <input type="file" name="mapFile" id="mapFile">
+                        <button onclick="AddMap()">LoadMap</button>
+                        <button onclick="ClearMaps()">ClearMaps</button>
+                        <br>
+                        <label>Selected map file</label>
+                        <select name="mapList" id="mapList"></select>
+                        <button onclick="SetMap()">SetMap</button>
+                    </div>
+
+                    <div name="controllerLoader">
+                        <input type="file" name="controllerFile" id="controllerFile">
+                        <button onclick="AddController()">LoadController</button>
+                        <button onclick="ClearControllers()">ClearControllers</button>
+                        <br>
+                        <label>Loaded controllers</label>
+                        <ul name="controllerUl" id="controllerUl"></ul>
+                    </div>
+                    <div>
+                        <button onclick="UpdateRender()">UpdateRender</button>
+                        <input type="range" min="20" max="500" step="10" id="graphics-scale">
+                        <label for="graphics-scale">Graphics scale</label>
+                    </div>
+                    <div name="mapInfo">
+                        <label> Width:</label>
+                        <label id="mapWidth">Nan</label>
+                        <br>
+                        <label> Height:</label>
+                        <label id="mapHeight">Nan</label>
+                        <br>
+                        <label> Bots:</label>
+                        <ul id="botsList"></ul>
+                        <br>
+                        <label> Turns:</label>
+                        <label id="turnsCount"> Nan:</label>
+                        <br>
+                        <button onclick="MakeScene()">Start Game</button>
+                        <button onclick="NextStep()">Next step</button>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <script>
+        function UpdateSelect(select, names) {
+            while (select.firstChild) {
+                select.removeChild(select.firstChild);
+            }
+            for (let i = 0; i < names.length; ++i) {
+                var option = document.createElement("option");
+                option.text = names[i];
+                select.add(option);
+            }
+        }
+
+        function UpdateUl(ulName, names) {
+            let ul = document.getElementById(ulName);
+            while (ul.firstChild) {
+                ul.removeChild(ul.firstChild);
+            }
+
+            for (let i = 0; i < names.length; ++i) {
+                var li = document.createElement("li");
+                li.appendChild(document.createTextNode(names[i]));
+                ul.appendChild(li);
+            }
+        }
+
+        function AddNewObjectToStorage(inputName, pullName, updateFunction) {
+            let inputFile = document.getElementById(inputName);
+            if (inputFile.files.length > 0) {
+                for (let i = 0; i < inputFile.files.length; ++i) {
+                    let reader = new FileReader();
+                    reader.readAsText(inputFile.files[i]);
+                    reader.onload = function() {
+                        AddToPool(reader.result, inputFile.files[i].name, pullName);
+                        updateFunction();
+                    };
+
+                    reader.onerror = function() {
+                        console.log(reader.error);
+                    };
+                }
+            }
+        }
+
+        function AddMap() {
+            AddNewObjectToStorage("mapFile", mapsPoolName, function() {
+                UpdateSelect(document.getElementById("mapList"), GetMapsNames());
+            });
+        }
+
+        function ClearMaps() {
+            ClearMapsPool();
+            UpdateSelect(document.getElementById("mapList"), GetMapsNames());
+        }
+
+        function AddController() {
+            AddNewObjectToStorage("controllerFile", controllersPoolName, function() {
+                UpdateUl("controllerUl", GetControllersNames());
+            });
+        }
+
+        function ClearControllers() {
+            ClearControllersPool();
+            UpdateUl("controllerUl", GetControllersNames());
+        }
+
+        function MakeScene() {
+            let select = document.getElementById("mapList");
+            if (select.selectedIndex == -1)
+                return null;
+            let mapText = GetMapObjectByName(select.options[select.selectedIndex].text);
+            mapInfo = MapInfo.LoadMapFromText(mapText);
+
+            bots = []
+            for (let i = 0; i < mapInfo.spawns.length; ++i) {
+                let select = document.getElementById("bot" + i + "Type");
+                if (select.selectedIndex == -1)
+                    throw "select for ai has index=-1";
+                if (select.options[select.selectedIndex].text == "none")
+                    continue;
+                let controllerScript = GetMapObjectByName(select.options[select.selectedIndex].text);
+                let controller = eval(controllerScript);
+                bots.push(new Bot(0, 0, 0, controller, "bot" + i + "Type"));
+            }
+            scene = new Scene(mapInfo, bots);
+            UpdateRender();
+            document.getElementById('turnsCount').innerHTML = mapInfo.turns;
+        }
+
+        function UpdateRender() {
+            let x = document.getElementById("graphics-scale").value;
+            let y = x;
+            let canvas = document.getElementById("main-window");
+            scene.Render(canvas, x, y);
+        }
+
+        function NextStep() {
+            scene.NextStep();
+            UpdateRender();
+            document.getElementById('turnsCount').innerHTML = mapInfo.turns;
+        }
+
+        function SetMap() {
+            let select = document.getElementById("mapList");
+            let x = document.getElementById("graphics-scale").value;
+            let y = x;
+            let canvas = document.getElementById("main-window");
+            if (select.selectedIndex == -1)
+                return null;
+            let mapText = GetMapObjectByName(select.options[select.selectedIndex].text);
+            mapInfo = MapInfo.LoadMapFromText(mapText);
+            scene = new Scene(mapInfo, []);
+            scene.Render(canvas, x, y);
+
+            document.getElementById('mapWidth').innerHTML = mapInfo.width;
+            document.getElementById('mapHeight').innerHTML = mapInfo.height;
+
+            let ul = document.getElementById("botsList");
+            while (ul.firstChild) {
+                ul.removeChild(ul.firstChild);
+            }
+
+            for (let i = 0; i < mapInfo.spawns.length; ++i) {
+                var li = document.createElement("li");
+                var selectList = document.createElement("select");
+                selectList.id = "bot" + i + "Type";
+                UpdateSelect(selectList, [...["none"], ...GetControllersNames()]);
+                li.appendChild(document.createTextNode("bot #" + i));
+                li.appendChild(selectList);
+                ul.appendChild(li);
+            }
+
+            document.getElementById('turnsCount').innerHTML = mapInfo.turns;
+        }
+
+        UpdateSelect(document.getElementById("mapList"), GetMapsNames());
+        UpdateUl("controllerUl", GetControllersNames());
+
+        let scene = null;
+        let mapInfo = null;
+
+        //preload image
+        new Tree();
+        new Wall();
+        new Field();
+        new Bot();
+        new Snowball();
+    </script>
+</body>
+
+</html>
