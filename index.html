@@ -9,64 +9,243 @@
     <script src="scripts/MovableObject.js"></script>
     <script src="scripts/StaticObject.js"></script>
     <script src="scripts/Scene.js"></script>
+    <script src="scripts/SafeEval.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/ace.js"></script>
 </head>
 
 <body>
-    <table border="2" cellpadding="0" cellspacing="0" margin="auto" align="center" width="100%" height="100%" class="fixed">
-        <tr>
-            <td width="70%" height="100%">
-                <div class="scroll">
-                    <canvas id='main-window'></canvas>
-                </div>
-            </td>
-            <td width="30%" height="100%" vertical-align="top">
-                <div class="scroll">
-                    <div name="mapSelecter" align="left">
-                        <input type="file" name="mapFile" id="mapFile">
-                        <button onclick="AddMap()">LoadMap</button>
-                        <button onclick="ClearMaps()">ClearMaps</button>
-                        <br>
-                        <label>Selected map file</label>
-                        <select name="mapList" id="mapList"></select>
-                        <button onclick="SetMap()">SetMap</button>
-                    </div>
+    <div class="wrapper">
+        <div class="buttonWrapper">
+            <button class="tab-button active buttonMenu" style="border-top-left-radius: 10px;" data-id="controllerEditorTab">Controller editor</button>
+            <button class="tab-button buttonMenu" data-id="mapEditorTab">Map editor</button>
+            <button class="tab-button buttonMenu" style="border-top-right-radius: 10px;" data-id="gameTab">Game</button>
+        </div>
+        <div class="contentWrapper">
+            <div class="content active" id="controllerEditorTab">
+                <table border="2" cellpadding="0" cellspacing="0" margin="auto" align="center" class="fixed">
+                    <tr>
+                        <td width="70%" height="100%">
+                            <div id="editor1_wrapper" class="app_editor_wrapper">
+                                <div id="controllerEditorText" class="app_editor"></div>
+                                <div>
+                                    <button onclick="SaveController()">SaveAs</button>
+                                    <button onclick="LoadAndSetController()">Load</button>
+                                    <input id="controllerFileName">
+                                </div>
+                            </div>
+                        </td>
+                        <td width="30%" height="100%" vertical-align="top">
+                            <div class="scroll">
+                                <div name="controllerLoader">
+                                    <label>Loaded controllers</label>
+                                    <ul name="controllerUl" id="controllerUl"></ul>
+                                    <input type="file" name="controllerFile" id="controllerFile">
+                                    <button onclick="AddController()">LoadController</button>
+                                    <button onclick="ClearControllers()">ClearControllers</button>
+                                    <br>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="content" id="mapEditorTab">
+                <table border="2" cellpadding="0" cellspacing="0" margin="auto" align="center" class="fixed">
+                    <tr>
+                        <td width="70%" height="100%">
+                            <div id="editor2_wrapper" class="app_editor_wrapper">
+                                <div id="mapEditorText" class="app_editor"></div>
+                                <div>
+                                    <button onclick="SaveMap()">SaveAs</button>
+                                    <button onclick="LoadAndSetMap()">Load</button>
+                                    <input id="mapFileName">
+                                </div>
+                            </div>
+                        </td>
+                        <td width="30%" height="100%" vertical-align="top">
+                            <div class="scroll">
+                                <div name="mapLoader">
+                                    <label>Loaded maps</label>
+                                    <ul name="mapsUl" id="mapsUl"></ul>
+                                    <input type="file" name="mapFile" id="mapFile">
+                                    <button onclick="AddMap()">LoadMap</button>
+                                    <button onclick="ClearMaps()">ClearMaps</button>
+                                    <canvas id="mapPreview"></canvas>
+                                    <br>
+                                    <button id="updateMapPreview" onclick="UpdateMapPreview()">UpdateMapPreview</button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="content" id="gameTab">
+                <table border="2" cellpadding="0" cellspacing="0" margin="auto" align="center" class="fixed">
+                    <tr>
+                        <td width="70%" height="100%">
+                            <div class="scroll">
+                                <canvas id='main-window'></canvas>
+                            </div>
+                        </td>
+                        <td width="30%" height="100%" vertical-align="top">
+                            <div class="scroll">
+                                <div name="selectMap">
+                                    <label>Selected map file</label>
+                                    <select name="mapList" id="mapList"></select>
+                                    <button onclick="SetMap()">SetMap</button>
+                                </div>
 
-                    <div name="controllerLoader">
-                        <input type="file" name="controllerFile" id="controllerFile">
-                        <button onclick="AddController()">LoadController</button>
-                        <button onclick="ClearControllers()">ClearControllers</button>
-                        <br>
-                        <label>Loaded controllers</label>
-                        <ul name="controllerUl" id="controllerUl"></ul>
-                    </div>
-                    <div>
-                        <button onclick="UpdateRender()">UpdateRender</button>
-                        <input type="range" min="20" max="500" step="10" id="graphics-scale">
-                        <label for="graphics-scale">Graphics scale</label>
-                    </div>
-                    <div name="mapInfo">
-                        <label> Width:</label>
-                        <label id="mapWidth">Nan</label>
-                        <br>
-                        <label> Height:</label>
-                        <label id="mapHeight">Nan</label>
-                        <br>
-                        <label> Bots:</label>
-                        <ul id="botsList"></ul>
-                        <br>
-                        <label> Turns:</label>
-                        <label id="turnsCount"> Nan:</label>
-                        <br>
-                        <button onclick="MakeScene()">Start Game</button>
-                        <button onclick="NextStep()">Next step</button>
-                    </div>
-                </div>
-            </td>
-        </tr>
-    </table>
+                                <div name="mapInfo">
+                                    <label> Width:</label>
+                                    <label id="mapWidth">Nan</label>
+                                    <br>
+                                    <label> Height:</label>
+                                    <label id="mapHeight">Nan</label>
+                                    <br>
+                                    <label> Bots:</label>
+                                    <ul id="botsList"></ul>
+                                    <br>
+                                    <label> Turns:</label>
+                                    <label id="turnsCount"> Nan:</label>
+                                    <br>
+                                    <button onclick="MakeScene()">Start Game</button>
+                                    <button onclick="NextStep()">Next step</button>
+                                </div>
+
+                                <div name="renderSettings">
+                                    <button onclick="UpdateRender()">UpdateRender</button>
+                                    <input type="range" min="20" max="500" step="10" id="graphics-scale">
+                                    <label for="graphics-scale">Graphics scale</label>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
 
     <script>
+        function UpdateMapPreview() {
+            try {
+                mapEditorScene = new Scene(MapInfo.LoadMapFromJson(mapEditor.getValue()), []);
+                mapEditorScene.Render(document.getElementById("mapPreview"));
+            } catch (error) {
+                alert(error);
+                return;
+            }
+
+        }
+
+        function InitTabs() {
+            const tabs = document.querySelector(".wrapper");
+            const tabButton = document.querySelectorAll(".tab-button");
+            const contents = document.querySelectorAll(".content");
+
+            tabs.onclick = e => {
+                const id = e.target.dataset.id;
+                if (id) {
+                    tabButton.forEach(btn => {
+                        btn.classList.remove("active");
+                    });
+                    e.target.classList.add("active");
+
+                    contents.forEach(content => {
+                        content.classList.remove("active");
+                    });
+                    const element = document.getElementById(id);
+                    element.classList.add("active");
+                }
+            }
+        }
+
+        function IsNameValid(name) {
+            return !(name === null || name === undefined || name.length == 0);
+        }
+
+        function SetMapToEditor(name) {
+            if (IsNameValid(document.getElementById("mapFileName").value))
+                SaveMap();
+            if (!MapExistInPool(name)) {
+                alert("Map not found");
+                return;
+            }
+            mapEditor.setValue(GetObjectFromStorageByName(name));
+            document.getElementById("mapFileName").value = name;
+        }
+
+        function SetControllerToEditor(name) {
+            if (IsNameValid(document.getElementById("controllerFileName").value))
+                SaveController();
+            if (!ControllerExistInPool(name)) {
+                alert("Map not found");
+                return;
+            }
+            controllerEditor.setValue(GetObjectFromStorageByName(name));
+            document.getElementById("controllerFileName").value = name;
+        }
+
+        function DeleteController(name) {
+            RemoveControllerFromPool(name);
+            UpdateAllControllerListsAndUls();
+        }
+
+        function DeleteMap(name) {
+            RemoveMapFromPool(name);
+            UpdateAllMapListsAndUls();
+        }
+
+        function SaveController() {
+            let name = document.getElementById("controllerFileName").value;
+            if (!IsNameValid(name)) {
+                alert("bad name");
+                return;
+            }
+            AddControllerToPool(controllerEditor.getValue(), name);
+            UpdateAllControllerListsAndUls();
+        }
+
+        function LoadAndSetController() {
+            let name = document.getElementById("controllerFileName").value;
+            if (!IsNameValid(name)) {
+                alert("bad name");
+                return;
+            }
+            SetControllerToEditor(name);
+        }
+
+        function SaveMap() {
+            let name = document.getElementById("mapFileName").value;
+            if (!IsNameValid(name)) {
+                alert("bad name");
+                return;
+            }
+
+            try {
+                if (!MapInfo.IsJsonValid(mapEditor.getValue())) {
+                    return;
+                }
+            } catch (error) {
+                alert(error);
+                return;
+            }
+
+            AddMapToPool(mapEditor.getValue(), name);
+            UpdateAllMapListsAndUls();
+        }
+
+        function LoadAndSetMap() {
+            let name = document.getElementById("mapFileName").value;
+            if (!IsNameValid(name)) {
+                alert("bad name");
+                return;
+            }
+            SetMapToEditor(name);
+        }
+
         function UpdateSelect(select, names) {
+            if (names == null && names == undefined)
+                return;
             while (select.firstChild) {
                 select.removeChild(select.firstChild);
             }
@@ -77,28 +256,63 @@
             }
         }
 
-        function UpdateUl(ulName, names) {
-            let ul = document.getElementById(ulName);
+        function UpdateEditorUl(ul, names, onDelete, onEdit) {
+            if (names == null && names == undefined)
+                return;
+
             while (ul.firstChild) {
                 ul.removeChild(ul.firstChild);
             }
 
             for (let i = 0; i < names.length; ++i) {
-                var li = document.createElement("li");
+                let li = document.createElement("li");
+
+                let deleteButton = document.createElement("button");
+                deleteButton.classList.add("delete_button");
+                deleteButton.innerHTML = "Delete";
+                deleteButton.onclick = function() {
+                    onDelete(names[i]);
+                }
+
+                let editButton = document.createElement("button");
+                editButton.classList.add("edit_button");
+                editButton.innerHTML = "Edit";
+                editButton.onclick = function() {
+                    onEdit(names[i]);
+                }
+
+                li.appendChild(deleteButton);
+                li.appendChild(editButton);
                 li.appendChild(document.createTextNode(names[i]));
                 ul.appendChild(li);
             }
         }
 
-        function AddNewObjectToStorage(inputName, pullName, updateFunction) {
+        function AddNewObjectToStorage(inputName, pullName, updateFunction, checkDataFunction) {
             let inputFile = document.getElementById(inputName);
             if (inputFile.files.length > 0) {
                 for (let i = 0; i < inputFile.files.length; ++i) {
                     let reader = new FileReader();
                     reader.readAsText(inputFile.files[i]);
                     reader.onload = function() {
-                        AddToPool(reader.result, inputFile.files[i].name, pullName);
-                        updateFunction();
+                        if (checkDataFunction !== null && checkDataFunction !== undefined) {
+                            try {
+                                if (checkDataFunction(reader.result)) {
+                                    AddToPool(reader.result, inputFile.files[i].name, pullName);
+                                    updateFunction();
+                                } else {
+                                    alert("Wrong format");
+                                    return;
+                                }
+                            } catch (error) {
+                                alert(error);
+                                return;
+                            }
+
+                        } else {
+                            AddToPool(reader.result, inputFile.files[i].name, pullName);
+                            updateFunction();
+                        }
                     };
 
                     reader.onerror = function() {
@@ -109,61 +323,60 @@
         }
 
         function AddMap() {
-            AddNewObjectToStorage("mapFile", mapsPoolName, function() {
-                UpdateSelect(document.getElementById("mapList"), GetMapsNames());
-            });
+            AddNewObjectToStorage("mapFile", mapsPoolName, UpdateAllMapListsAndUls, MapInfo.IsJsonValid);
         }
 
         function ClearMaps() {
             ClearMapsPool();
-            UpdateSelect(document.getElementById("mapList"), GetMapsNames());
+            UpdateAllMapListsAndUls();
         }
 
         function AddController() {
-            AddNewObjectToStorage("controllerFile", controllersPoolName, function() {
-                UpdateUl("controllerUl", GetControllersNames());
-            });
+            AddNewObjectToStorage("controllerFile", controllersPoolName, UpdateAllControllerListsAndUls, ValidateControllerText);
         }
 
         function ClearControllers() {
             ClearControllersPool();
-            UpdateUl("controllerUl", GetControllersNames());
+            UpdateAllControllerListsAndUls();
         }
 
         function MakeScene() {
             let select = document.getElementById("mapList");
             if (select.selectedIndex == -1)
                 return null;
-            let mapText = GetMapObjectByName(select.options[select.selectedIndex].text);
-            mapInfo = MapInfo.LoadMapFromText(mapText);
+            let mapText = GetObjectFromStorageByName(select.options[select.selectedIndex].text);
+            gameMapInfo = MapInfo.LoadMapFromJson(mapText);
 
             bots = []
-            for (let i = 0; i < mapInfo.spawns.length; ++i) {
+            for (let i = 0; i < gameMapInfo.spawns.length; ++i) {
                 let select = document.getElementById("bot" + i + "Type");
                 if (select.selectedIndex == -1)
                     throw "select for ai has index=-1";
                 if (select.options[select.selectedIndex].text == "none")
                     continue;
-                let controllerScript = GetMapObjectByName(select.options[select.selectedIndex].text);
-                let controller = eval(controllerScript);
-                bots.push(new Bot(0, 0, 0, controller, "Bot " + i));
+                let controllerScript = GetObjectFromStorageByName(select.options[select.selectedIndex].text);
+                let controller = LoadControllerFromString(controllerScript);
+                bots.push(new Bot(0, 0, 0, controller, "bot " + i));
             }
-            scene = new Scene(mapInfo, bots);
+            gameScene = new Scene(gameMapInfo, bots);
             UpdateRender();
-            document.getElementById('turnsCount').innerHTML = mapInfo.turns;
+            document.getElementById('turnsCount').innerHTML = gameMapInfo.turns;
         }
 
         function UpdateRender() {
             let x = document.getElementById("graphics-scale").value;
             let y = x;
             let canvas = document.getElementById("main-window");
-            scene.Render(canvas, x, y);
+            gameScene.Render(canvas, x, y);
         }
 
         function NextStep() {
-            scene.NextStep();
+            let scores = gameScene.NextStep();
+            for (let i = 0; i < scores.length; ++i) {
+                document.getElementById("score" + scores[i].botName).innerHTML = scores[i].value;
+            }
             UpdateRender();
-            document.getElementById('turnsCount').innerHTML = mapInfo.turns;
+            document.getElementById('turnsCount').innerHTML = gameMapInfo.turns;
         }
 
         function SetMap() {
@@ -173,37 +386,65 @@
             let canvas = document.getElementById("main-window");
             if (select.selectedIndex == -1)
                 return null;
-            let mapText = GetMapObjectByName(select.options[select.selectedIndex].text);
-            mapInfo = MapInfo.LoadMapFromText(mapText);
-            scene = new Scene(mapInfo, []);
-            scene.Render(canvas, x, y);
+            let mapText = GetObjectFromStorageByName(select.options[select.selectedIndex].text);
+            gameMapInfo = MapInfo.LoadMapFromJson(mapText);
+            gameScene = new Scene(gameMapInfo, []);
+            gameScene.Render(canvas, x, y);
 
-            document.getElementById('mapWidth').innerHTML = mapInfo.width;
-            document.getElementById('mapHeight').innerHTML = mapInfo.height;
+            document.getElementById('mapWidth').innerHTML = gameMapInfo.width;
+            document.getElementById('mapHeight').innerHTML = gameMapInfo.height;
 
             let ul = document.getElementById("botsList");
             while (ul.firstChild) {
                 ul.removeChild(ul.firstChild);
             }
 
-            for (let i = 0; i < mapInfo.spawns.length; ++i) {
+            for (let i = 0; i < gameMapInfo.spawns.length; ++i) {
                 var li = document.createElement("li");
+                var scoreLabel = document.createElement("label");
+                scoreLabel.innerHTML = 0;
+                scoreLabel.id = "score" + "bot " + i;
                 var selectList = document.createElement("select");
                 selectList.id = "bot" + i + "Type";
                 UpdateSelect(selectList, [...["none"], ...GetControllersNames()]);
                 li.appendChild(document.createTextNode("bot #" + i));
                 li.appendChild(selectList);
+                li.appendChild(scoreLabel)
                 ul.appendChild(li);
             }
 
-            document.getElementById('turnsCount').innerHTML = mapInfo.turns;
+            document.getElementById('turnsCount').innerHTML = gameMapInfo.turns;
         }
 
-        UpdateSelect(document.getElementById("mapList"), GetMapsNames());
-        UpdateUl("controllerUl", GetControllersNames());
+        function InitAceEditor(name, modePath) {
+            let editor = ace.edit(name);
+            editor.setTheme("ace/theme/clouds");
+            editor.session.setMode({
+                path: modePath,
+                inline: true
+            });
+            return editor;
+        }
 
-        let scene = null;
-        let mapInfo = null;
+        function UpdateAllMapListsAndUls() {
+            UpdateSelect(document.getElementById("mapList"), GetMapsNames());
+            UpdateEditorUl(document.getElementById("mapsUl"), GetMapsNames(), DeleteMap, SetMapToEditor);
+        }
+
+        function UpdateAllControllerListsAndUls() {
+            UpdateEditorUl(document.getElementById("controllerUl"), GetControllersNames(), DeleteController, SetControllerToEditor);
+        }
+
+        var controllerEditor = InitAceEditor("controllerEditorText", "ace/mode/javascript");
+        var mapEditor = InitAceEditor("mapEditorText", "ace/mode/json");
+        InitTabs();
+
+        UpdateAllControllerListsAndUls();
+        UpdateAllMapListsAndUls();
+
+        let gameScene = null;
+        let gameMapInfo = null;
+        let mapEditorScene = null;
 
         //preload image
         new Tree();

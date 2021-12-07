@@ -37,16 +37,6 @@ class Bot extends ControlledObject {
     }
 }
 
-class SimpleController {
-    constructor() {}
-    Init(mapInfo) {
-        this.mapInfo = mapInfo;
-    }
-    GetDirection(sceneInfo) {
-        this.sceneInfo = sceneInfo;
-    }
-}
-
 class Snowball extends MovableObject {
     constructor(x, y, dir, currentSnowCount = 0) {
         super(x, y, dir, ResourceLoader.LoadPng("resources/textures/snowball0.png"));

@@ -1,23 +1,114 @@
 html,
 body {
+    width: 100%;
     height: 100%;
-    margin: 0px;
-    padding: 0px;
+    font-family: 'Jost', sans-serif;
+    background-color: #f0f5ff;
 }
 
 .scroll {
     width: 100%;
     height: 100%;
-    background: rgb(230, 176, 176);
-    border: 1px solid #C1C1C1;
-    overflow-x: scroll;
-    overflow-y: scroll;
+    background: rgb(233, 248, 255);
+    border: 1px solid #eeeded;
+    overflow-x: auto;
+    overflow-y: auto;
 }
 
 table.fixed {
+    width: 100%;
+    height: 100%;
     table-layout: fixed;
 }
 
 table.fixed td {
     overflow: hidden;
+}
+
+.app_editor {
+    height: 94%;
+    width: 100%;
+    margin-bottom: 5px;
+    border: black;
+    border-width: 1;
+    border-style: solid;
+}
+
+.app_editor_wrapper {
+    height: 100%;
+    width: 100%;
+    border-bottom: 1px solid #222222;
+}
+
+.delete_button {
+    width: 50px;
+    height: 20px;
+    margin-right: 5px;
+    margin-left: 5px;
+    background: url('buttonImages/deleteButton.png');
+}
+
+.edit_button {
+    width: 40px;
+    height: 20px;
+    margin-right: 5px;
+    margin-left: 5px;
+    background: url('buttonImages/editButton.png');
+}
+
+h1 {
+    font-size: 48px;
+    color: #232c3d;
+}
+
+.wrapper {
+    width: 100%;
+    height: 100%;
+    background-color: white;
+}
+
+.contentWrapper {
+    width: 100%;
+    height: 100%;
+}
+
+.buttonWrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+.buttonMenu {
+    letter-spacing: 3px;
+    border: none;
+    padding: 10px;
+    background-color: #bccbe9;
+    color: #232c3d;
+    font-size: 18px;
+    cursor: pointer;
+    transition: 0.5s;
+    border-radius: 5px;
+}
+
+.buttonMenu:hover {
+    background-color: #d5e3ff;
+}
+
+.buttonMenu.active {
+    background-color: white;
+}
+
+.active {
+    background-color: white;
+}
+
+.content {
+    width: 100%;
+    height: 100%;
+    display: none;
+}
+
+.content.active {
+    width: 100%;
+    height: 100%;
+    display: block;
 }

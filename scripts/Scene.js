@@ -60,41 +60,119 @@ class MapInfo {
         }
     }
 
-    static LoadMapFromText(str) {
-        let lines = str.split('\r\n');
+    static IsJsonValid(json) {
+        let obj = JSON.parse(json);
+        if (typeof obj.width !== "number") {
+            alert("width not number");
+            return false;
+        }
 
-        let buff = lines[0].split(" ");
-        let width = parseInt(buff[0]);
-        let height = parseInt(buff[1]);
+        if (typeof obj.height !== "number") {
+            alert("height not number");
+            return false;
+        }
+
+        if (typeof obj.turns !== "number") {
+            alert("turns not number");
+            return false;
+        }
+
+        let width = obj.width * 1;
+        let height = obj.height * 1;
+
+        if (obj.map.length !== height) {
+            alert("Real map height !== height")
+            return false;
+        }
+
+        for (let h = 0; h < height; ++h) {
+            if (obj.map[h].length < width) {
+                alert("there are not enough characters in the line describing the map line: " + h);
+                return false;
+            }
+
+            if (obj.map[h].length > width) {
+                alert("there are too many characters in the line describing the map line: " + h);
+                return false;
+            }
+
+            for (let w = 0; w < width; ++w) {
+                if (!(obj.map[h][w] === "*" || obj.map[h][w] === "#" || obj.map[h][w] === ".")) {
+                    alert("Strange char at w: " + w + " h: " + h);
+                    return false;
+                }
+            }
+        }
+
+        if (obj.spawns.length != obj.bases.length) {
+            alert("spawns.length != bases.length")
+            return false;
+        }
+
+        for (let i = 0; i < obj.spawns.length; ++i) {
+            if (typeof obj.spawns[i].x !== "number" || typeof obj.spawns[i].y !== "number") {
+                alert("wrong spawn #" + i + " format");
+                return false;
+            }
+        }
+
+        for (let i = 0; i < obj.bases.length; ++i) {
+            let topLeft = obj.bases[i].topLeft;
+            if (typeof topLeft.x !== "number" || typeof topLeft.y !== "number") {
+                alert("wrong topLeft base #" + i + " format");
+                return false;
+            }
+            let bottomRight = obj.bases[i].bottomRight;
+            if (typeof bottomRight.x !== "number" || typeof bottomRight.y !== "number") {
+                alert("wrong bottomRight base #" + i + " format");
+                return false;
+            }
+
+            if (topLeft.x > bottomRight.x) {
+                alert("base #" + i + "topLeft.x>bottomRight.x");
+                return false;
+            }
+            if (topLeft.y > bottomRight.y) {
+                alert("base #" + i + "topLeft.y>bottomRight.y");
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    static LoadMapFromJson(json) {
+        let obj = JSON.parse(json);
+
+        if (!MapInfo.IsJsonValid(json)) {
+            alert("Json is invalide")
+            return;
+        }
+
+        let width = obj.width * 1;
+        let height = obj.height * 1;
 
         let map = [];
         for (let h = 0; h < height; ++h) {
-            if (lines[h + 1].length < width)
-                throw "there are not enough characters in the line describing the map line: " + (h + 1);
             map[h] = []
             for (let w = 0; w < width; ++w) {
-                map[h][w] = this.MapCharToGameObject(lines[h + 1][w]);
+                map[h][w] = this.MapCharToGameObject(obj.map[h][w]);
             }
         }
 
         let spawns = [];
-        let playersCount = parseInt(lines[height + 1]);
-        buff = lines[height + 2].split(" ");
-        if (buff.length < playersCount * 2)
-            throw "there are not enough characters in the line describing the spawns"
-        for (let i = 0; i < buff.length; i += 2) {
-            spawns.push({ x: buff[i], y: buff[i + 1] });
+        for (let i = 0; i < obj.spawns.length; ++i) {
+            spawns.push({ x: obj.spawns[i].x, y: obj.spawns[i].y });
         }
 
-        let bases = [];
-        buff = lines[height + 3].split(" ");
-        if (buff.length < playersCount * 4)
-            throw "there are not enough characters in the line describing the bases"
-        for (let i = 0; i < buff.length; i += 4) {
-            bases.push(new PlayerBase({ x: buff[i], y: buff[i + 1] }, { x: buff[i + 2], y: buff[i + 3] }));
+        let bases = []
+        for (let i = 0; i < obj.bases.length; ++i) {
+            let topLeft = obj.bases[i].topLeft;
+            let bottomRight = obj.bases[i].bottomRight;
+            bases.push(new PlayerBase({ x: topLeft.x, y: topLeft.y }, { x: bottomRight.x, y: bottomRight.y }))
         }
 
-        let turns = parseInt(lines[height + 4]);
+        let turns = obj.turns * 1;
 
         return new MapInfo(width, height, map, spawns, bases, turns);
     }
@@ -216,6 +294,22 @@ class Scene {
                 }
             }
         }
+
+        let scores = [];
+        for (let i = 0; i < this.bots.length; ++i) {
+            scores[i] = { value: 0, botName: this.bots[i].name };
+            for (let h = this.mapInfo.bases[i].topLeft.y; h <= this.mapInfo.bases[i].bottomRight.y; ++h) {
+                for (let w = this.mapInfo.bases[i].topLeft.x; w <= this.mapInfo.bases[i].bottomRight.x; ++w) {
+                    if (this.dynamicLayer[h][w] !== null &&
+                        this.dynamicLayer[h][w] !== undefined &&
+                        this.dynamicLayer[h][w].constructor.name === "Snowball") {
+                        scores[i].value += this.dynamicLayer[h][w].GetSnowCount() + 1;
+                    }
+                }
+            }
+        }
+
+        return scores;
     }
 
     Render(canvas, tileW = 20, tileH = 20) {
@@ -229,6 +323,18 @@ class Scene {
             }
         }
 
+        for (let i = 0; i < this.mapInfo.bases.length; ++i) {
+            let topLeft = this.mapInfo.bases[i].topLeft;
+            let bottomRight = this.mapInfo.bases[i].bottomRight;
+            context.rect(topLeft.x * tileW, topLeft.y * tileH, (bottomRight.x - topLeft.x + 1) * tileW, (bottomRight.y - topLeft.y + 1) * tileH);
+            context.fillStyle = "rgba(" + this.baseColors[i].r + "," + this.baseColors[i].g + "," + this.baseColors[i].b + "," + "0.4)";
+            context.fill();
+
+            context.font = "normal 36px Verdana";
+            context.fillStyle = "#0000FF";
+            context.fillText("Base:" + i, topLeft.x * tileW, topLeft.y * tileH, tileW);
+        }
+
         for (let i = 0; i < this.bots.length; ++i) {
             let bot = this.bots[i];
             context.drawImage(bot.texture, bot.x * tileW, bot.y * tileH, tileW, tileH);
@@ -240,18 +346,6 @@ class Scene {
         for (let i = 0; i < this.snowballs.length; ++i) {
             let snowball = this.snowballs[i];
             context.drawImage(snowball.texture, snowball.x * tileW, snowball.y * tileH, tileW, tileH);
-        }
-
-        for (let i = 0; i < this.mapInfo.bases.length; ++i) {
-            let topLeft = this.mapInfo.bases[i].topLeft;
-            let bottomRight = this.mapInfo.bases[i].bottomRight;
-            context.rect(topLeft.x * tileW, topLeft.y * tileH, (bottomRight.x - topLeft.x + 1) * tileW, (bottomRight.y - topLeft.y + 1) * tileH);
-            context.fillStyle = "rgba(" + this.baseColors[i].r + "," + this.baseColors[i].g + "," + this.baseColors[i].b + "," + "0.4)";
-            context.fill();
-
-            context.font = "normal 36px Verdana";
-            context.fillStyle = "#0000FF";
-            context.fillText("Base:" + i, topLeft.x * tileW, topLeft.y * tileH, tileW);
         }
     }
 }

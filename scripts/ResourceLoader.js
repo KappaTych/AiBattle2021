@@ -32,18 +32,34 @@ function AddToPool(str, name, poolName) {
     let names = localStorage.getItem(poolName);
     if (names === null)
         names = "";
-    if (names.split("\\").indexOf(name) < 1)
+    if (names.split("\\").indexOf(name) < 1) {
+        if (localStorage.getItem(name) !== null) {
+            alert("There is an object of another type with the same name.");
+            return;
+        }
         names += "\\" + name;
+    }
+
     localStorage.setItem(name, str);
     localStorage.setItem(poolName, names);
 }
 
 function AddControllerToPool(controller, name) {
-    AddToPool(controller, name, controllersPoolName);
+    try {
+        LoadControllerFromString(controller);
+        AddToPool(controller, name, controllersPoolName);
+    } catch (error) {
+        alert(error);
+    }
 }
 
 function AddMapToPool(map, name) {
-    AddToPool(map, name, mapsPoolName);
+    try {
+        if (MapInfo.IsJsonValid(map))
+            AddToPool(map, name, mapsPoolName);
+    } catch (error) {
+        alert(error);
+    }
 }
 
 function ClearPool(poolName) {
@@ -82,6 +98,38 @@ function GetControllersNames() {
     return GetPoolObjectNames(controllersPoolName);
 }
 
-function GetMapObjectByName(name) {
+function GetObjectFromStorageByName(name) {
     return localStorage.getItem(name);
+}
+
+function RemoveObjectFromPool(name, poolName) {
+    let names = localStorage.getItem(poolName);
+    names = names.replace("\\" + name, "");
+    localStorage.setItem(poolName, names);
+    localStorage.removeItem(name);
+}
+
+function RemoveMapFromPool(name) {
+    RemoveObjectFromPool(name, mapsPoolName)
+}
+
+function RemoveControllerFromPool(name) {
+    RemoveObjectFromPool(name, controllersPoolName);
+}
+
+function ExistInPool(name, poolName) {
+    let names = GetPoolObjectNames(poolName);
+    for (let i = 0; i < names.length; ++i) {
+        if (name === names[i])
+            return true;
+    }
+    return false;
+}
+
+function MapExistInPool(name) {
+    return ExistInPool(name, mapsPoolName);
+}
+
+function ControllerExistInPool(name) {
+    return ExistInPool(name, controllersPoolName);
 }
