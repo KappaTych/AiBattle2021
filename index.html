@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>Read Text File</title>
+    <title>Ai Battle</title>
     <link href="styles/style.css" rel="stylesheet" type="text/css">
     <script src="scripts/ResourceLoader.js"></script>
     <script src="scripts/GameObject.js"></script>
@@ -10,6 +10,7 @@
     <script src="scripts/StaticObject.js"></script>
     <script src="scripts/Scene.js"></script>
     <script src="scripts/SafeEval.js"></script>
+    <script src="scripts/WorkerWaraper.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/ace.js"></script>
 </head>
 
@@ -108,14 +109,22 @@
                                     <label> Turns:</label>
                                     <label id="turnsCount"> Nan:</label>
                                     <br>
-                                    <button onclick="MakeScene()">Start Game</button>
+                                    <button onclick="StartGame()">Start Game</button>
                                     <button onclick="NextStep()">Next step</button>
+                                    <br>
+                                    <button onclick="NextStepWithTimer()">Next step with timer</button>
+                                    <input type="range" min="10" max="1000" step="10" id="botTurnTime">
+                                    <label for="botTurnTime">Bot turn time ms</label>
+                                    <br>
+                                    <button onclick="AutoStep()">Auto step</button>
+                                    <input type="range" min="10" max="1000" step="10" id="turnTime">
+                                    <label for="turnTime">Turns period ms</label>
                                 </div>
 
                                 <div name="renderSettings">
                                     <button onclick="UpdateRender()">UpdateRender</button>
-                                    <input type="range" min="20" max="500" step="10" id="graphics-scale">
-                                    <label for="graphics-scale">Graphics scale</label>
+                                    <input type="range" min="20" max="500" step="10" id="graphicsScale">
+                                    <label for="graphicsScale">Graphics scale</label>
                                 </div>
                             </div>
                         </td>
@@ -340,7 +349,7 @@
             UpdateAllControllerListsAndUls();
         }
 
-        function MakeScene() {
+        function StartGame() {
             let select = document.getElementById("mapList");
             if (select.selectedIndex == -1)
                 return null;
@@ -360,28 +369,50 @@
             }
             gameScene = new Scene(gameMapInfo, bots);
             UpdateRender();
-            document.getElementById('turnsCount').innerHTML = gameMapInfo.turns;
         }
 
         function UpdateRender() {
-            let x = document.getElementById("graphics-scale").value;
+            let x = document.getElementById("graphicsScale").value;
             let y = x;
             let canvas = document.getElementById("main-window");
             gameScene.Render(canvas, x, y);
+            document.getElementById('turnsCount').innerHTML = gameScene.turnsCount;
+            let scores = gameScene.CalcScores()
+            for (let i = 0; i < scores.length; ++i) {
+                document.getElementById("score" + scores[i].botName).innerHTML = scores[i].value;
+            }
+        }
+
+        function AutoStep() {
+            if (startedAutoStep) {
+                clearInterval(timerId);
+            } else {
+                timerId = setInterval(function() {
+                        if (gameScene.turnsCount > 0) {
+                            NextStepWithTimer();
+                        } else {
+                            clearInterval(timerId);
+                            startedAutoStep = !startedAutoStep;
+                        }
+                    },
+                    document.getElementById("turnTime").value,
+                    document.getElementById("botTurnTime").value);
+            }
+            startedAutoStep = !startedAutoStep;
         }
 
         function NextStep() {
             let scores = gameScene.NextStep();
-            for (let i = 0; i < scores.length; ++i) {
-                document.getElementById("score" + scores[i].botName).innerHTML = scores[i].value;
-            }
             UpdateRender();
-            document.getElementById('turnsCount').innerHTML = gameMapInfo.turns;
+        }
+
+        function NextStepWithTimer() {
+            gameScene.NextStepWithTimer(document.getElementById("botTurnTime").value, UpdateRender);
         }
 
         function SetMap() {
             let select = document.getElementById("mapList");
-            let x = document.getElementById("graphics-scale").value;
+            let x = document.getElementById("graphicsScale").value;
             let y = x;
             let canvas = document.getElementById("main-window");
             if (select.selectedIndex == -1)
@@ -445,6 +476,9 @@
         let gameScene = null;
         let gameMapInfo = null;
         let mapEditorScene = null;
+
+        let startedAutoStep = false;
+        let timerId = null;
 
         //preload image
         new Tree();

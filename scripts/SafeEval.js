@@ -21,6 +21,6 @@ function LoadControllerFromString(input) {
     if (!ValidateController(controller)) {
         throw "Controller broken";
     }
-
+    controller.text = input;
     return controller;
 }

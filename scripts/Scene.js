@@ -211,6 +211,7 @@ class Scene {
         this.mapInfo = mapInfo;
         this.bots = bots;
         this.snowballs = [];
+        this.turnsCount = this.mapInfo.turns;
 
         if (bots.length > mapInfo.spawns.length) {
             throw "Spawns not enough";
@@ -242,66 +243,64 @@ class Scene {
         this.dynamicLayer[dynObj.y][dynObj.x] = dynObj;
     }
 
-    NextStep() {
-        if (this.mapInfo.turns === 0)
-            return;
-        --this.mapInfo.turns;
+    PrepareDataForController(botIndex) {
+        let enemies = [];
         for (let i = 0; i < this.bots.length; ++i) {
-            let enemies = [];
-            for (let j = 0; j < this.bots.length; ++j) {
-                if (j != i) {
-                    enemies.push({
-                        x: this.bots[j].x,
-                        y: this.bots[j].y,
-                        name: this.bots[j].name,
-                    })
-                }
-            }
-
-            let snowballs = []
-
-            for (let j = 0; j < this.snowballs.length; ++j) {
-                snowballs.push({
-                    x: this.snowballs[j].x,
-                    y: this.snowballs[j].y,
-                    name: this.snowballs[j].currentSnowCount,
+            if (i != botIndex) {
+                enemies.push({
+                    x: this.bots[i].x,
+                    y: this.bots[i].y,
+                    name: this.bots[i].name,
                 })
             }
+        }
 
-            let infoForController = new SceneInfoForController({ x: this.bots[i].x, y: this.bots[i].y }, enemies, snowballs);
-            let dir = this.bots[i].controller.GetDirection(infoForController);
-            this.bots[i].SetDir(dir);
+        let snowballs = []
+        for (let i = 0; i < this.snowballs.length; ++i) {
+            snowballs.push({
+                x: this.snowballs[i].x,
+                y: this.snowballs[i].y,
+                name: this.snowballs[i].currentSnowCount,
+            })
+        }
 
-            let newX = this.bots[i].x + Scene.moves[dir].x;
-            let newY = this.bots[i].y + Scene.moves[dir].y;
-            let afterY = newY + Scene.moves[dir].y;
-            let afterX = newX + Scene.moves[dir].x;
+        return new SceneInfoForController({ x: this.bots[botIndex].x, y: this.bots[botIndex].y }, enemies, snowballs);
+    }
 
-            let map = this.mapInfo.map;
-            if (map[newY][newX].constructor.name === "Field") {
-                if (this.dynamicLayer[newY][newX] == null) {
-                    if (map[afterY][afterX].constructor.name === "Field" && this.dynamicLayer[afterY][afterX] == null) {
-                        if (map[newY][newX].DecSnow() > 0) {
-                            let snowball = new Snowball(afterX, afterY, dir);
-                            this.snowballs.push(snowball);
-                            this.dynamicLayer[afterY][afterX] = snowball;
-                        }
+    UpdateDynamicLayerAfterBotChooseDirection(botIndex, dir) {
+        this.bots[botIndex].SetDir(dir);
+
+        let newX = this.bots[botIndex].x + Scene.moves[dir].x;
+        let newY = this.bots[botIndex].y + Scene.moves[dir].y;
+        let afterY = newY + Scene.moves[dir].y;
+        let afterX = newX + Scene.moves[dir].x;
+
+        let map = this.mapInfo.map;
+        if (map[newY][newX].constructor.name === "Field") {
+            if (this.dynamicLayer[newY][newX] == null) {
+                if (map[afterY][afterX].constructor.name === "Field" && this.dynamicLayer[afterY][afterX] == null) {
+                    if (map[newY][newX].DecSnow() > 0) {
+                        let snowball = new Snowball(afterX, afterY, dir);
+                        this.snowballs.push(snowball);
+                        this.dynamicLayer[afterY][afterX] = snowball;
                     }
-                    this.MoveDynamicObject(this.bots[i], newX, newY);
-                } else {
-                    if (this.dynamicLayer[newY][newX].constructor.name === "Snowball") {
-                        if (map[afterY][afterX].constructor.name === "Field" && this.dynamicLayer[afterY][afterX] == null) {
-                            if (map[newY][newX].GetSnowCount() > 0 && this.dynamicLayer[newY][newX].IncSnow() > 0) {
-                                map[newY][newX].DecSnow();
-                            }
-                            this.MoveDynamicObject(this.dynamicLayer[newY][newX], afterX, afterY);
-                            this.MoveDynamicObject(this.bots[i], newX, newY);
+                }
+                this.MoveDynamicObject(this.bots[botIndex], newX, newY);
+            } else {
+                if (this.dynamicLayer[newY][newX].constructor.name === "Snowball") {
+                    if (map[afterY][afterX].constructor.name === "Field" && this.dynamicLayer[afterY][afterX] == null) {
+                        if (map[newY][newX].GetSnowCount() > 0 && this.dynamicLayer[newY][newX].IncSnow() > 0) {
+                            map[newY][newX].DecSnow();
                         }
+                        this.MoveDynamicObject(this.dynamicLayer[newY][newX], afterX, afterY);
+                        this.MoveDynamicObject(this.bots[botIndex], newX, newY);
                     }
                 }
             }
         }
+    }
 
+    UpdateSnowOnFileds() {
         let map = this.mapInfo.map;
         for (let h = 0; h < map.length; ++h) {
             for (let w = 0; w < map[h].length; ++w) {
@@ -310,7 +309,9 @@ class Scene {
                 }
             }
         }
+    }
 
+    CalcScores() {
         let scores = [];
         for (let i = 0; i < this.bots.length; ++i) {
             scores[i] = { value: 0, botName: this.bots[i].name };
@@ -363,5 +364,61 @@ class Scene {
             let snowball = this.snowballs[i];
             context.drawImage(snowball.texture, snowball.x * tileW, snowball.y * tileH, tileW, tileH);
         }
+    }
+
+    DecTurns() {
+        if (this.turnsCount.turns === 0) {
+            alert("Run out of turns");
+            return false;
+        }
+        --this.turnsCount;
+        return true;
+    }
+
+    NextStep() {
+        if (!this.DecTurns())
+            return this.CalcScores();
+
+        for (let i = 0; i < this.bots.length; ++i) {
+            let dir = this.bots[i].controller.GetDirection(this.PrepareDataForController(i));
+            if (!(dir === 0 || dir === 1 || dir === 2 || dir === 3)) {
+                alert("bad direction format " + this.bots[i].name);
+                continue;
+            }
+            this.UpdateDynamicLayerAfterBotChooseDirection(i, dir);
+        }
+
+        this.UpdateSnowOnFileds();
+        return this.CalcScores();
+    }
+
+    NextStepWithTimer(timeout, onComplete) {
+        if (this.DecTurns())
+            this.IterateAsyncStep(timeout, 0, onComplete);
+    }
+
+    IterateAsyncStep(timeout, botIndex = 0, onComplete = null) {
+        let scene = this;
+        this.currentWorker = MakeWorkerForGetDirection(
+            this.bots[botIndex].controller,
+            this.PrepareDataForController(botIndex),
+            timeout,
+            function next(worker, result) {
+                worker.terminate();
+                if ((result.dir === 0 || result.dir === 1 || result.dir === 2 || result.dir === 3)) {
+                    CopyDataToObject(result.controller, scene.bots[botIndex].controller);
+                    scene.UpdateDynamicLayerAfterBotChooseDirection(botIndex, result.dir);
+                } else {
+                    console.log("bot #" + botIndex + "wrong dir format");
+                }
+
+                if (botIndex + 1 === scene.bots.length) {
+                    scene.UpdateSnowOnFileds();
+                    if (onComplete !== null && onComplete !== undefined)
+                        onComplete(scene.CalcScores());
+                } else {
+                    scene.IterateAsyncStep(timeout, botIndex + 1, onComplete)
+                }
+            });
     }
 }
