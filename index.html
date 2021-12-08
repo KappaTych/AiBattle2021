@@ -474,12 +474,15 @@
             UpdateEditorUl(document.getElementById("controllerUl"), GetControllersNames(), DeleteController, SetControllerToEditor);
         }
 
-        var controllerEditor = InitAceEditor("controllerEditorText", "ace/mode/javascript");
-        var mapEditor = InitAceEditor("mapEditorText", "ace/mode/json");
-        InitTabs();
+        function InitEditors() {
+            document.getElementById("mapFileName").value = "";
+            document.getElementById("controllerFileName").value = "";
+            controllerEditor = InitAceEditor("controllerEditorText", "ace/mode/javascript");
+            mapEditor = InitAceEditor("mapEditorText", "ace/mode/json");
+        }
 
-        UpdateAllControllerListsAndUls();
-        UpdateAllMapListsAndUls();
+        let controllerEditor = null;
+        let mapEditor = null;
 
         let gameScene = null;
         let gameMapInfo = null;
@@ -494,6 +497,13 @@
         new Field();
         new Bot();
         new Snowball();
+
+        window.onload = function() {
+            InitEditors();
+            InitTabs();
+            UpdateAllControllerListsAndUls();
+            UpdateAllMapListsAndUls();
+        }
     </script>
 </body>
 
