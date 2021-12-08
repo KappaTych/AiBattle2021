@@ -367,7 +367,7 @@ class Scene {
     }
 
     DecTurns() {
-        if (this.turnsCount.turns === 0) {
+        if (this.turnsCount === 0) {
             alert("Run out of turns");
             return false;
         }
@@ -399,9 +399,14 @@ class Scene {
 
     IterateAsyncStep(timeout, botIndex = 0, onComplete = null) {
         let scene = this;
+        if (scene.bots.length === 0) {
+            scene.UpdateSnowOnFileds();
+            onComplete(scene.CalcScores());
+            return;
+        }
         this.currentWorker = MakeWorkerForGetDirection(
-            this.bots[botIndex].controller,
-            this.PrepareDataForController(botIndex),
+            scene.bots[botIndex].controller,
+            scene.PrepareDataForController(botIndex),
             timeout,
             function next(worker, result) {
                 worker.terminate();

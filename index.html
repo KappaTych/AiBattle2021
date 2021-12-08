@@ -368,6 +368,7 @@
                 bots.push(new Bot(0, 0, 0, controller, "bot " + i));
             }
             gameScene = new Scene(gameMapInfo, bots);
+            StopAutoStep();
             UpdateRender();
         }
 
@@ -383,6 +384,11 @@
             }
         }
 
+        function StopAutoStep() {
+            clearInterval(timerId);
+            startedAutoStep = false;
+        }
+
         function AutoStep() {
             if (startedAutoStep) {
                 clearInterval(timerId);
@@ -391,8 +397,7 @@
                         if (gameScene.turnsCount > 0) {
                             NextStepWithTimer();
                         } else {
-                            clearInterval(timerId);
-                            startedAutoStep = !startedAutoStep;
+                            StopAutoStep();
                         }
                     },
                     document.getElementById("turnTime").value,
@@ -402,6 +407,7 @@
         }
 
         function NextStep() {
+            StopAutoStep();
             let scores = gameScene.NextStep();
             UpdateRender();
         }
@@ -411,6 +417,8 @@
         }
 
         function SetMap() {
+            StopAutoStep()
+
             let select = document.getElementById("mapList");
             let x = document.getElementById("graphicsScale").value;
             let y = x;
