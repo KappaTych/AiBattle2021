@@ -3,12 +3,16 @@ function RunEval(input) {
 }
 
 function ValidateController(controller) {
-    return controller.Init != null && controller.Init != undefined && typeof controller.Init === 'function' &&
-        controller.GetDirection != null && controller.GetDirection != undefined && typeof controller.GetDirection === 'function';
+    try {
+        return controller.Init != null && controller.Init != undefined && typeof controller.Init === 'function' &&
+            controller.GetDirection != null && controller.GetDirection != undefined && typeof controller.GetDirection === 'function';
+    } catch (error) {
+        alert(error);
+        return false;
+    }
 }
 
-function ValidateControllerText (text)
-{
+function ValidateControllerText(text) {
     return ValidateController(RunEval(text));
 }
 

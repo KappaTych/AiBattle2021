@@ -62,8 +62,14 @@ class MapInfo {
 
     static IsJsonValid(json) {
         let obj = JSON.parse(json);
+
         if (typeof obj.width !== "number") {
             alert("width not number");
+            return false;
+        }
+
+        if (obj.width <= 0) {
+            alert("width <= 0");
             return false;
         }
 
@@ -72,8 +78,18 @@ class MapInfo {
             return false;
         }
 
+        if (obj.height <= 0) {
+            alert("height <= 0");
+            return false;
+        }
+
         if (typeof obj.turns !== "number") {
             alert("turns not number");
+            return false;
+        }
+
+        if (obj.turns <= 0) {
+            alert("turns <= 0");
             return false;
         }
 
