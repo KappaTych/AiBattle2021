@@ -29,7 +29,7 @@ function CopyAndInit(data) {
     CopyDataToObject(controllerData, fullController);
 
     fullController.Init(data.info);
-
+    
     return {
         complete: true,
         controller: GetDataFromObject(fullController)
@@ -66,7 +66,7 @@ function MakeWorkerForInit(controller, mapInfo, timeout, timeOutDelegate) {
     let worker = MakeWorker(GetDataFromObject.toString() + '\n' +
         CopyDataToObject.toString() + '\n' +
         CopyAndInit.toString() + '\n' +
-        "self.onmessage=function(e){CopyAndGetDir(e.data);}",
+        "self.onmessage=function(e){postMessage(CopyAndInit(e.data));}",
         function(e) {
             result.complete = e.data.complete;
             result.controller = e.data.controller;

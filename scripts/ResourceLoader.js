@@ -9,20 +9,6 @@ class ResourceLoader {
         }
         return ResourceLoader.loadedPngs.get(path);
     }
-
-    // static async LoadPng(path) {
-    //     let img;
-    //     const imageLoadPromise = new Promise(resolve => {
-    //         img = new Image();
-    //         img.onload = resolve;
-    //         img.src = path;
-    //         ResourceLoader.loadedPngs.set(path, img);
-    //     });
-
-    //     await imageLoadPromise;
-    //     console.log("image loaded");
-    //     return ResourceLoader.loadedPngs.get(path);
-    // }
 }
 
 const mapsPoolName = 'AiBattleMaps';
@@ -84,7 +70,7 @@ function ClearControllersPool() {
 function GetPoolObjectNames(poolName) {
     let names = localStorage.getItem(poolName);
     if (names === null)
-        return;
+        return [];
     let ans = names.split("\\");
     ans.shift();
     return ans;

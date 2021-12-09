@@ -9,7 +9,6 @@ body {
     width: 100%;
     height: 100%;
     background: rgb(233, 248, 255);
-    border: 1px solid #eeeded;
     overflow-x: auto;
     overflow-y: auto;
 }

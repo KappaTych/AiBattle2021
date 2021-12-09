@@ -197,23 +197,23 @@ class MapInfo {
 class Scene {
 
     static moves = [{ x: 0, y: -1 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: -1, y: 0 }];
+    static baseColors = [
+        { r: 255, g: 0, b: 0 },
+        { r: 255, g: 127, b: 0 },
+        { r: 255, g: 255, b: 0 },
+        { r: 0, g: 255, b: 0 },
+        { r: 0, g: 0, b: 255 },
+        { r: 75, g: 0, b: 130 },
+        { r: 148, g: 0, b: 211 },
+    ];
 
-    constructor(mapInfo, bots) {
-        this.baseColors = [
-            { r: 255, g: 0, b: 0 },
-            { r: 255, g: 127, b: 0 },
-            { r: 255, g: 255, b: 0 },
-            { r: 0, g: 255, b: 0 },
-            { r: 0, g: 0, b: 255 },
-            { r: 75, g: 0, b: 130 },
-            { r: 148, g: 0, b: 211 },
-        ]
+    constructor(mapInfo, bots, isAsyncBotsInit = false, timeout = 10, onComplete = null) {
         this.mapInfo = mapInfo;
         this.bots = bots;
         this.snowballs = [];
         this.turnsCount = this.mapInfo.turns;
 
-        if (bots.length > mapInfo.spawns.length) {
+        if (this.bots.length > mapInfo.spawns.length) {
             throw "Spawns not enough";
         }
 
@@ -228,12 +228,58 @@ class Scene {
         }
 
         spawns.sort(() => Math.random() - 0.5);
-        for (let i = 0; i < bots.length; ++i) {
-            bots[i].x = spawns[i].x * 1;
-            bots[i].y = spawns[i].y * 1;
-            bots[i].controller.Init(this.mapInfo.GetClone());
-            this.dynamicLayer[bots[i].y][bots[i].x] = bots[i];
+        for (let i = 0; i < this.bots.length; ++i) {
+            this.bots[i].x = spawns[i].x * 1;
+            this.bots[i].y = spawns[i].y * 1;
+            this.dynamicLayer[this.bots[i].y][this.bots[i].x] = this.bots[i];
         }
+
+        if (isAsyncBotsInit) {
+            this.AsyncBotsInit(timeout, onComplete);
+        } else {
+            this.InitBots();
+        }
+    }
+
+    InitBots() {
+        for (let i = 0; i < this.bots.length; ++i) {
+            bots[i].controller.Init(this.mapInfo.GetClone());
+        }
+    }
+
+    AsyncBotsInit(timeout, onComplete) {
+        this.IterateAsyncInit(timeout, 0, onComplete);
+    }
+
+    IterateAsyncInit(timeout = 10, botIndex = 0, onComplete = null) {
+        let scene = this;
+
+        if (scene.bots.length === 0) {
+            if (onComplete !== null && onComplete !== undefined)
+                onComplete();
+            return;
+        }
+
+        this.currentWorker = MakeWorkerForInit(
+            scene.bots[botIndex].controller,
+            scene.mapInfo.GetClone(),
+            timeout,
+            function next(worker, result) {
+                worker.terminate();
+                if (result.complete) {
+                    CopyDataToObject(result.controller, scene.bots[botIndex].controller);
+                } else {
+                    console.log("bot #" + botIndex + " init unsuccessful");
+                }
+
+                if (botIndex + 1 === scene.bots.length) {
+                    if (onComplete !== null && onComplete !== undefined)
+                        onComplete();
+                } else {
+                    scene.IterateAsyncInit(timeout, botIndex + 1, onComplete)
+                }
+            }
+        );
     }
 
     MoveDynamicObject(dynObj, x, y) {
@@ -344,7 +390,7 @@ class Scene {
             let topLeft = this.mapInfo.bases[i].topLeft;
             let bottomRight = this.mapInfo.bases[i].bottomRight;
             context.rect(topLeft.x * tileW, topLeft.y * tileH, (bottomRight.x - topLeft.x + 1) * tileW, (bottomRight.y - topLeft.y + 1) * tileH);
-            context.fillStyle = "rgba(" + this.baseColors[i].r + "," + this.baseColors[i].g + "," + this.baseColors[i].b + "," + "0.4)";
+            context.fillStyle = "rgba(" + Scene.baseColors[i].r + "," + Scene.baseColors[i].g + "," + Scene.baseColors[i].b + "," + "0.4)";
             context.fill();
 
             context.font = "normal 36px Verdana";
@@ -401,7 +447,8 @@ class Scene {
         let scene = this;
         if (scene.bots.length === 0) {
             scene.UpdateSnowOnFileds();
-            onComplete(scene.CalcScores());
+            if (onComplete !== null && onComplete !== undefined)
+                onComplete(scene.CalcScores());
             return;
         }
         this.currentWorker = MakeWorkerForGetDirection(
@@ -424,6 +471,7 @@ class Scene {
                 } else {
                     scene.IterateAsyncStep(timeout, botIndex + 1, onComplete)
                 }
-            });
+            }
+        );
     }
 }

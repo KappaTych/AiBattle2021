@@ -41,8 +41,8 @@
                                     <label>Loaded controllers</label>
                                     <ul name="controllerUl" id="controllerUl"></ul>
                                     <input type="file" name="controllerFile" id="controllerFile">
-                                    <button onclick="AddController()">LoadController</button>
-                                    <button onclick="ClearControllers()">ClearControllers</button>
+                                    <button onclick="AddController()">Load controller</button>
+                                    <button onclick="ClearControllers()">Clear controllers</button>
                                     <br>
                                 </div>
                             </div>
@@ -57,7 +57,7 @@
                             <div id="editor2_wrapper" class="app_editor_wrapper">
                                 <div id="mapEditorText" class="app_editor"></div>
                                 <div>
-                                    <button onclick="SaveMap()">SaveAs</button>
+                                    <button onclick="SaveMap()">Save As</button>
                                     <button onclick="LoadAndSetMap()">Load</button>
                                     <input id="mapFileName">
                                 </div>
@@ -69,11 +69,14 @@
                                     <label>Loaded maps</label>
                                     <ul name="mapsUl" id="mapsUl"></ul>
                                     <input type="file" name="mapFile" id="mapFile">
-                                    <button onclick="AddMap()">LoadMap</button>
-                                    <button onclick="ClearMaps()">ClearMaps</button>
-                                    <canvas id="mapPreview"></canvas>
+                                    <button onclick="AddMap()">Load map</button>
+                                    <button onclick="ClearMaps()">clear maps</button>
                                     <br>
-                                    <button id="updateMapPreview" onclick="UpdateMapPreview()">UpdateMapPreview</button>
+                                    <button id="updateMapPreview" onclick="UpdateMapPreview()">Update map preview</button>
+                                    <br>
+                                    <div class="scroll">
+                                        <canvas id="mapPreview" width="0" height="0"></canvas>
+                                    </div>
                                 </div>
                             </div>
                         </td>
@@ -84,7 +87,7 @@
                 <table border="2" cellpadding="0" cellspacing="0" margin="auto" align="center" class="fixed">
                     <tr>
                         <td width="70%" height="100%">
-                            <div class="scroll">
+                            <div id="mainWindowContainer" class="scroll">
                                 <canvas id='main-window'></canvas>
                             </div>
                         </td>
@@ -92,11 +95,11 @@
                             <div class="scroll">
                                 <div name="selectMap">
                                     <label>Selected map file</label>
-                                    <select name="mapList" id="mapList"></select>
-                                    <button onclick="SetMap()">SetMap</button>
+                                    <select name="mapList" onchange="SetMap()" id="mapList"></select>
+                                    <!-- <button onclick="SetMap()">SetMap</button> -->
                                 </div>
 
-                                <div name="mapInfo">
+                                <div name="mapInfoDiv" id="mapInfoDiv">
                                     <label> Width:</label>
                                     <label id="mapWidth">Nan</label>
                                     <br>
@@ -110,21 +113,28 @@
                                     <label id="turnsCount"> Nan:</label>
                                     <br>
                                     <button onclick="StartGame()">Start Game</button>
+                                </div>
+
+                                <div name="gameTurnsControllerDiv" id="gameTurnsControllerDiv">
                                     <button onclick="NextStep()">Next step</button>
                                     <br>
                                     <button onclick="NextStepWithTimer()">Next step with timer</button>
-                                    <input type="range" min="10" max="1000" step="10" id="botTurnTime">
+                                    <input type="range" min="10" max="1000" step="1" id="botTurnTime" oninput="UpdateOutputForInputRange('botTurnTimeOutput',this.value)">
+                                    <output id="botTurnTimeOutput">0</output>
                                     <label for="botTurnTime">Bot turn time ms</label>
                                     <br>
                                     <button onclick="AutoStep()">Auto step</button>
-                                    <input type="range" min="10" max="1000" step="10" id="turnTime">
+                                    <input type="range" min="10" max="1000" step="1" id="turnTime" oninput="UpdateOutputForInputRange('turnTimeOutput',this.value)">
+                                    <output id="turnTimeOutput">0</output>
                                     <label for="turnTime">Turns period ms</label>
                                 </div>
 
-                                <div name="renderSettings">
-                                    <button onclick="UpdateRender()">UpdateRender</button>
-                                    <input type="range" min="20" max="500" step="10" id="graphicsScale">
-                                    <label for="graphicsScale">Graphics scale</label>
+                                <div name="renderSettingsDiv" id="renderSettingsDiv">
+                                    <button onclick="UpdateRender()">Update render</button>
+                                    <button onclick="AutoSizeRender()">Autosize render</button>
+                                    <input type="range" min="20" max="500" step="1" id="tileSize" oninput="UpdateOutputForInputRange('tileSizeOutput',this.value)">
+                                    <output id="tileSizeOutput">0</output>
+                                    <label for="tileSize">Tile size</label>
                                 </div>
                             </div>
                         </td>
@@ -135,6 +145,10 @@
     </div>
 
     <script>
+        function UpdateOutputForInputRange(name, value) {
+            document.getElementById(name).value = value;
+        }
+
         function UpdateMapPreview() {
             try {
                 mapEditorScene = new Scene(MapInfo.LoadMapFromJson(mapEditor.getValue()), []);
@@ -151,7 +165,7 @@
             const tabButton = document.querySelectorAll(".tab-button");
             const contents = document.querySelectorAll(".content");
 
-            tabs.onclick = e => {
+            tabs.onclick = function(e) {
                 const id = e.target.dataset.id;
                 if (id) {
                     tabButton.forEach(btn => {
@@ -164,6 +178,8 @@
                     });
                     const element = document.getElementById(id);
                     element.classList.add("active");
+
+                    StopAutoStep();
                 }
             }
         }
@@ -350,6 +366,9 @@
         }
 
         function StartGame() {
+            //let select = document.getElementById("mapList");
+            StopAutoStep();
+
             let select = document.getElementById("mapList");
             if (select.selectedIndex == -1)
                 return null;
@@ -367,13 +386,16 @@
                 let controller = LoadControllerFromString(controllerScript);
                 bots.push(new Bot(0, 0, 0, controller, "bot " + i));
             }
-            gameScene = new Scene(gameMapInfo, bots);
-            StopAutoStep();
-            UpdateRender();
+
+            gameScene = new Scene(gameMapInfo, bots, true, 100,
+                //Hack when bots length = 0, call Update after scene assign 
+                function() {
+                    setTimeout(UpdateRender, 0);
+                });
         }
 
         function UpdateRender() {
-            let x = document.getElementById("graphicsScale").value;
+            let x = document.getElementById("tileSize").value;
             let y = x;
             let canvas = document.getElementById("main-window");
             gameScene.Render(canvas, x, y);
@@ -385,8 +407,10 @@
         }
 
         function StopAutoStep() {
-            clearInterval(timerId);
-            startedAutoStep = false;
+            if (startedAutoStep) {
+                clearInterval(timerId);
+                startedAutoStep = false;
+            }
         }
 
         function AutoStep() {
@@ -416,28 +440,49 @@
             gameScene.NextStepWithTimer(document.getElementById("botTurnTime").value, UpdateRender);
         }
 
-        function SetMap() {
-            StopAutoStep()
-
-            let select = document.getElementById("mapList");
-            let x = document.getElementById("graphicsScale").value;
-            let y = x;
-            let canvas = document.getElementById("main-window");
-            if (select.selectedIndex == -1)
-                return null;
-            let mapText = GetObjectFromStorageByName(select.options[select.selectedIndex].text);
-            gameMapInfo = MapInfo.LoadMapFromJson(mapText);
-            gameScene = new Scene(gameMapInfo, []);
-            gameScene.Render(canvas, x, y);
-
-            document.getElementById('mapWidth').innerHTML = gameMapInfo.width;
-            document.getElementById('mapHeight').innerHTML = gameMapInfo.height;
-
+        function ResetMapUI() {
             let ul = document.getElementById("botsList");
             while (ul.firstChild) {
                 ul.removeChild(ul.firstChild);
             }
 
+            document.getElementById('mapWidth').innerHTML = 0;
+            document.getElementById('mapHeight').innerHTML = 0;
+            document.getElementById('turnsCount').innerHTML = 0;
+            let canvas = document.getElementById("main-window");
+            const context = canvas.getContext('2d');
+            context.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function AutoSizeRender() {
+            let tileSize = document.getElementById("tileSize");
+            let size = GetGameCanvasSuitableSize();
+            size = Math.min(Math.max(size, tileSize.min), tileSize.max);
+            tileSize.value = size;
+            tileSize.oninput();
+            UpdateOutputForInputRange("tileSizeOutput", size)
+            UpdateRender();
+        }
+
+        function SetMap() {
+            StopAutoStep()
+
+            let select = document.getElementById("mapList");
+            let canvas = document.getElementById("main-window");
+
+            ResetMapUI();
+
+            if (select.selectedIndex == -1)
+                return null;
+
+            let mapText = GetObjectFromStorageByName(select.options[select.selectedIndex].text);
+            gameMapInfo = MapInfo.LoadMapFromJson(mapText);
+            gameScene = new Scene(gameMapInfo, []);
+
+            document.getElementById('mapWidth').innerHTML = gameMapInfo.width;
+            document.getElementById('mapHeight').innerHTML = gameMapInfo.height;
+
+            let ul = document.getElementById("botsList");
             for (let i = 0; i < gameMapInfo.spawns.length; ++i) {
                 var li = document.createElement("li");
                 var scoreLabel = document.createElement("label");
@@ -453,6 +498,8 @@
             }
 
             document.getElementById('turnsCount').innerHTML = gameMapInfo.turns;
+
+            AutoSizeRender();
         }
 
         function InitAceEditor(name, modePath) {
@@ -468,17 +515,55 @@
         function UpdateAllMapListsAndUls() {
             UpdateSelect(document.getElementById("mapList"), GetMapsNames());
             UpdateEditorUl(document.getElementById("mapsUl"), GetMapsNames(), DeleteMap, SetMapToEditor);
+            SetMap();
         }
 
         function UpdateAllControllerListsAndUls() {
             UpdateEditorUl(document.getElementById("controllerUl"), GetControllersNames(), DeleteController, SetControllerToEditor);
+            SetMap();
+        }
+
+        function InitControllerEditor() {
+            let controllerFileName = document.getElementById("controllerFileName");
+            controllerFileName.value = "";
+            controllerEditor = InitAceEditor("controllerEditorText", "ace/mode/javascript");
+            let controllersNames = GetControllersNames();
+            if (controllersNames.length > 0) {
+                controllerFileName.value = controllersNames[0];
+                controllerEditor.setValue(GetObjectFromStorageByName(controllerFileName.value));
+            }
+        }
+
+        function InitMapEditor() {
+            let mapFileName = document.getElementById("mapFileName");
+            mapFileName.value = "";
+            mapEditor = InitAceEditor("mapEditorText", "ace/mode/json");
+            let mapsNames = GetMapsNames();
+            if (mapsNames.length > 0) {
+                mapFileName.value = mapsNames[0];
+                mapEditor.setValue((GetObjectFromStorageByName(mapFileName.value)));
+            }
         }
 
         function InitEditors() {
-            document.getElementById("mapFileName").value = "";
-            document.getElementById("controllerFileName").value = "";
-            controllerEditor = InitAceEditor("controllerEditorText", "ace/mode/javascript");
-            mapEditor = InitAceEditor("mapEditorText", "ace/mode/json");
+            InitControllerEditor();
+            InitMapEditor();
+        }
+
+        function GetGameCanvasSuitableSize() {
+            if (gameMapInfo === null || gameMapInfo === undefined)
+                return;
+            let mainWindowContainer = document.getElementById("mainWindowContainer");
+            let width = Math.floor(mainWindowContainer.offsetWidth / gameMapInfo.width);
+            let height = Math.floor(mainWindowContainer.offsetHeight / gameMapInfo.height);
+
+            return Math.min(width, height);
+        }
+
+        function UpdateRangeInputs() {
+            document.getElementById("turnTime").oninput();
+            document.getElementById("botTurnTime").oninput();
+            document.getElementById("tileSize").oninput();
         }
 
         let controllerEditor = null;
@@ -499,10 +584,11 @@
         new Snowball();
 
         window.onload = function() {
-            InitEditors();
             InitTabs();
+            InitEditors();
             UpdateAllControllerListsAndUls();
             UpdateAllMapListsAndUls();
+            UpdateRangeInputs();
         }
     </script>
 </body>
