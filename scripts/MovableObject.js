@@ -20,11 +20,12 @@ class ControlledObject extends MovableObject {
 }
 
 class Bot extends ControlledObject {
-    constructor(x, y, dir, controller, name) {
-        super(x, y, dir, ResourceLoader.LoadPng("resources/textures/bot0.png"), controller, name);
+    constructor(x, y, dir, controller, name, color = "white") {
+        super(x, y, dir, ResourceLoader.LoadPng("resources/textures/" + color + "Bot/" + "bot0.png "), controller, name);
         this.texturesForDir = [];
+        this.color = color;
         for (let i = 0; i < 4; ++i)
-            this.texturesForDir.push(ResourceLoader.LoadPng("resources/textures/bot" + i + ".png"));
+            this.texturesForDir.push(ResourceLoader.LoadPng("resources/textures/" + color + "Bot/" + "bot" + i + ".png "));
     }
 
     SetDir(dir) {

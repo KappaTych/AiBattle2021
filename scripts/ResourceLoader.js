@@ -3,12 +3,58 @@ class ResourceLoader {
 
     static LoadPng(path) {
         if (!ResourceLoader.loadedPngs.has(path)) {
-            let pic = new Image();
-            pic.src = path;
-            ResourceLoader.loadedPngs.set(path, pic);
+            let image = new Image();
+            image.src = path;
+            ResourceLoader.loadedPngs.set(path, image);
         }
         return ResourceLoader.loadedPngs.get(path);
     }
+
+    // static ChangeColor(mask, color) {
+    //     let canvas = document.createElement("canvas");
+    //     canvas.width = mask.width;
+    //     canvas.height = mask.height;
+    //     let context = canvas.getContext("2d");
+    //     context.drawImage(mask, 0, 0)
+    //     context.globalCompositeOperation = 'multiply';
+    //     context.fillStyle = color;
+    //     context.fillRect(0, 0, canvas.width, canvas.height);
+    //     let pic = new Image();
+    //     pic.src = canvas.toDataURL();
+    //     return pic;
+    // }
+
+    // static LoadPngAsMask(path, color) {
+    //     let newPath = path + "@" + JSON.stringify(color);
+    //     if (!ResourceLoader.loadedPngs.has(newPath)) {
+    //         let maskImage = ResourceLoader.LoadPng(path);
+    //         if (maskImage.complete && maskImage.naturalHeight !== 0) {
+    //             let image = imageResourceLoader.ChangeColor(maskImage, color);
+    //             image.crossOrigin = "anonymous";
+    //             ResourceLoader.loadedPngs.set(newPath, image);
+    //         } else {
+    //             maskImage.onload = function setImage() {
+    //                 let image = ResourceLoader.ChangeColor(maskImage, color);
+    //                 image.crossOrigin = "anonymous";
+    //                 ResourceLoader.loadedPngs.set(newPath, image);
+    //             }
+    //         }
+    //     }
+    //     return ResourceLoader.loadedPngs.get(newPath);
+    // }
+}
+
+function HexToRgbA(hex, a) {
+    let c;
+    if (/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) {
+        c = hex.substring(1).split('');
+        if (c.length == 3) {
+            c = [c[0], c[0], c[1], c[1], c[2], c[2]];
+        }
+        c = '0x' + c.join('');
+        return 'rgba(' + [(c >> 16) & 255, (c >> 8) & 255, c & 255].join(',') + ',' + a + ')';
+    }
+    throw new Error('Bad Hex');
 }
 
 const mapsPoolName = 'AiBattleMaps';

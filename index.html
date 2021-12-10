@@ -152,7 +152,7 @@
         function UpdateMapPreview() {
             try {
                 mapEditorScene = new Scene(MapInfo.LoadMapFromJson(mapEditor.getValue()), []);
-                mapEditorScene.Render(document.getElementById("mapPreview"));
+                mapEditorScene.Render(document.getElementById("mapPreview"), 30);
             } catch (error) {
                 alert(error);
                 return;
@@ -365,8 +365,28 @@
             UpdateAllControllerListsAndUls();
         }
 
+        function GetDataFromBotInfoDiv(infoDiv) {
+            let botName = null;
+            let type = null;
+            let score = null;
+
+            for (let i = 0; i < infoDiv.children.length; ++i) {
+                if (infoDiv.children[i].name == "name")
+                    botName = infoDiv.children[i];
+                if (infoDiv.children[i].name == "type")
+                    type = infoDiv.children[i];
+                if (infoDiv.children[i].name == "score")
+                    score = infoDiv.children[i];
+            }
+
+            return {
+                botName: botName,
+                type: type,
+                score: score
+            };
+        }
+
         function StartGame() {
-            //let select = document.getElementById("mapList");
             StopAutoStep();
 
             let select = document.getElementById("mapList");
@@ -376,18 +396,22 @@
             gameMapInfo = MapInfo.LoadMapFromJson(mapText);
 
             bots = []
-            for (let i = 0; i < gameMapInfo.spawns.length; ++i) {
-                let select = document.getElementById("bot" + i + "Type");
-                if (select.selectedIndex == -1)
+            let botsList = document.getElementById("botsList");
+            for (let i = 0; i < botsList.children.length; ++i) {
+                let infoDiv = botsList.children[i].children[0];
+                let data = GetDataFromBotInfoDiv(infoDiv);
+
+                if (data.type.selectedIndex == -1)
                     throw "select for ai has index=-1";
-                if (select.options[select.selectedIndex].text == "none")
+                if (data.type.options[data.type.selectedIndex].text == "none")
                     continue;
-                let controllerScript = GetObjectFromStorageByName(select.options[select.selectedIndex].text);
+
+                let controllerScript = GetObjectFromStorageByName(data.type.options[data.type.selectedIndex].text);
                 let controller = LoadControllerFromString(controllerScript);
-                bots.push(new Bot(0, 0, 0, controller, "bot " + i));
+                bots.push(new Bot(0, 0, 0, controller, data.botName.value, colors[i]));
             }
 
-            gameScene = new Scene(gameMapInfo, bots, true, 100,
+            gameScene = new Scene(gameMapInfo, bots, false, true, 100,
                 //Hack when bots length = 0, call Update after scene assign 
                 function() {
                     setTimeout(UpdateRender, 0);
@@ -396,13 +420,12 @@
 
         function UpdateRender() {
             let x = document.getElementById("tileSize").value;
-            let y = x;
             let canvas = document.getElementById("main-window");
-            gameScene.Render(canvas, x, y);
+            gameScene.Render(canvas, x);
             document.getElementById('turnsCount').innerHTML = gameScene.turnsCount;
             let scores = gameScene.CalcScores()
             for (let i = 0; i < scores.length; ++i) {
-                document.getElementById("score" + scores[i].botName).innerHTML = scores[i].value;
+                GetDataFromBotInfoDiv(document.getElementById(scores[i].botName + "InfoDiv")).score.innerHTML = scores[i].value;
             }
         }
 
@@ -482,19 +505,38 @@
             document.getElementById('mapWidth').innerHTML = gameMapInfo.width;
             document.getElementById('mapHeight').innerHTML = gameMapInfo.height;
 
-            let ul = document.getElementById("botsList");
+            let botsList = document.getElementById("botsList");
             for (let i = 0; i < gameMapInfo.spawns.length; ++i) {
-                var li = document.createElement("li");
-                var scoreLabel = document.createElement("label");
-                scoreLabel.innerHTML = 0;
-                scoreLabel.id = "score" + "bot " + i;
-                var selectList = document.createElement("select");
-                selectList.id = "bot" + i + "Type";
+                let botName = "bot#" + i;
+
+                let botInfoDiv = document.createElement("div");
+                botInfoDiv.id = botName + "InfoDiv";
+
+                let selectList = document.createElement("select");
+                selectList.name = "type";
                 UpdateSelect(selectList, [...["none"], ...GetControllersNames()]);
-                li.appendChild(document.createTextNode("bot #" + i));
-                li.appendChild(selectList);
-                li.appendChild(scoreLabel)
-                ul.appendChild(li);
+
+                let input = document.createElement("input");
+                input.value = botName;
+                input.name = "name";
+                input.onchange = function(text) {
+                    gameScene.RenameBot(botInfoDiv.id.replace("InfoDiv", ""), input.value);
+                    botInfoDiv.id = input.value + "InfoDiv";
+                    UpdateRender();
+                }
+
+                let scoreLabel = document.createElement("label");
+                scoreLabel.innerHTML = 0;
+                scoreLabel.name = "score";
+
+                botInfoDiv.appendChild(input);
+                botInfoDiv.appendChild(selectList);
+                botInfoDiv.appendChild(scoreLabel)
+
+                let li = document.createElement("li");
+                li.appendChild(botInfoDiv);
+
+                botsList.appendChild(li);
             }
 
             document.getElementById('turnsCount').innerHTML = gameMapInfo.turns;
@@ -575,6 +617,17 @@
 
         let startedAutoStep = false;
         let timerId = null;
+
+        const colors = [
+            "white",
+            "red",
+            "orange",
+            "yellow",
+            "green",
+            "blue",
+            "indigo",
+            "violet"
+        ];
 
         //preload image
         new Tree();

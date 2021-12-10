@@ -197,17 +197,18 @@ class MapInfo {
 class Scene {
 
     static moves = [{ x: 0, y: -1 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: -1, y: 0 }];
-    static baseColors = [
-        { r: 255, g: 0, b: 0 },
-        { r: 255, g: 127, b: 0 },
-        { r: 255, g: 255, b: 0 },
-        { r: 0, g: 255, b: 0 },
-        { r: 0, g: 0, b: 255 },
-        { r: 75, g: 0, b: 130 },
-        { r: 148, g: 0, b: 211 },
+    static baseDefaultColors = [
+        "white",
+        "red",
+        "orange",
+        "yellow",
+        "green",
+        "blue",
+        "indigo",
+        "violet"
     ];
 
-    constructor(mapInfo, bots, isAsyncBotsInit = false, timeout = 10, onComplete = null) {
+    constructor(mapInfo, bots, isRandomSpawn = false, isAsyncBotsInit = false, timeout = 10, onComplete = null) {
         this.mapInfo = mapInfo;
         this.bots = bots;
         this.snowballs = [];
@@ -227,7 +228,9 @@ class Scene {
             }
         }
 
-        spawns.sort(() => Math.random() - 0.5);
+        if (isRandomSpawn)
+            spawns.sort(() => Math.random() - 0.5);
+
         for (let i = 0; i < this.bots.length; ++i) {
             this.bots[i].x = spawns[i].x * 1;
             this.bots[i].y = spawns[i].y * 1;
@@ -238,6 +241,15 @@ class Scene {
             this.AsyncBotsInit(timeout, onComplete);
         } else {
             this.InitBots();
+        }
+    }
+
+    RenameBot(oldName, newName) {
+        for (let i = 0; i < this.bots.length; ++i) {
+            let bot = this.bots[i];
+            if (bot.name === oldName) {
+                bot.name = newName;
+            }
         }
     }
 
@@ -375,41 +387,87 @@ class Scene {
         return scores;
     }
 
-    Render(canvas, tileW = 20, tileH = 20) {
+    Render(canvas, tileSize = 20) {
         let map = this.mapInfo.map;
-        canvas.width = map[0].length * tileW;
-        canvas.height = map.length * tileH;
+        canvas.width = map[0].length * tileSize;
+        canvas.height = map.length * tileSize;
         let context = canvas.getContext('2d');
         for (let h = 0; h < map.length; ++h) {
             for (let w = 0; w < map[h].length; ++w) {
-                context.drawImage(map[h][w].texture, w * tileW, h * tileH, tileW, tileH);
+                context.drawImage(map[h][w].texture, w * tileSize, h * tileSize, tileSize, tileSize);
             }
         }
 
-        for (let i = 0; i < this.mapInfo.bases.length; ++i) {
-            let topLeft = this.mapInfo.bases[i].topLeft;
-            let bottomRight = this.mapInfo.bases[i].bottomRight;
-            context.rect(topLeft.x * tileW, topLeft.y * tileH, (bottomRight.x - topLeft.x + 1) * tileW, (bottomRight.y - topLeft.y + 1) * tileH);
-            context.fillStyle = "rgba(" + Scene.baseColors[i].r + "," + Scene.baseColors[i].g + "," + Scene.baseColors[i].b + "," + "0.4)";
-            context.fill();
-
-            context.font = "normal 36px Verdana";
-            context.fillStyle = "#0000FF";
-            context.fillText("Base:" + i, topLeft.x * tileW, topLeft.y * tileH, tileW);
+        if (this.bots.length > 0) {
+            for (let i = 0; i < this.bots.length; ++i) {
+                let topLeft = this.mapInfo.bases[i].topLeft;
+                let bottomRight = this.mapInfo.bases[i].bottomRight;
+                context.beginPath();
+                context.rect(topLeft.x * tileSize, topLeft.y * tileSize, (bottomRight.x - topLeft.x + 1) * tileSize, (bottomRight.y - topLeft.y + 1) * tileSize);
+                context.fillStyle = this.bots[i].color;
+                context.fillStyle = HexToRgbA(context.fillStyle, 0.3);
+                context.fill();
+            }
+        } else {
+            for (let i = 0; i < this.mapInfo.bases.length; ++i) {
+                let topLeft = this.mapInfo.bases[i].topLeft;
+                let bottomRight = this.mapInfo.bases[i].bottomRight;
+                context.beginPath();
+                context.rect(topLeft.x * tileSize, topLeft.y * tileSize, (bottomRight.x - topLeft.x + 1) * tileSize, (bottomRight.y - topLeft.y + 1) * tileSize);
+                context.fillStyle = Scene.baseDefaultColors[i];
+                context.fill();
+            }
         }
 
         for (let i = 0; i < this.bots.length; ++i) {
             let bot = this.bots[i];
-            context.drawImage(bot.texture, bot.x * tileW, bot.y * tileH, tileW, tileH);
-            context.font = "normal 36px Verdana";
-            context.fillStyle = "#0000FF";
-            context.fillText(bot.name, bot.x * tileW, bot.y * tileH, tileW);
+            context.beginPath();
+            context.drawImage(bot.texture, bot.x * tileSize, bot.y * tileSize, tileSize, tileSize);
+            this.DrawText(context, bot.name, bot.x, bot.y, tileSize)
         }
 
         for (let i = 0; i < this.snowballs.length; ++i) {
             let snowball = this.snowballs[i];
-            context.drawImage(snowball.texture, snowball.x * tileW, snowball.y * tileH, tileW, tileH);
+            context.drawImage(snowball.texture, snowball.x * tileSize, snowball.y * tileSize, tileSize, tileSize);
         }
+
+        if (this.bots.length === 0) {
+            this.DrawSpawns(context, tileSize);
+        }
+    }
+
+    DrawSpawns(context, tileSize) {
+        for (let i = 0; i < this.mapInfo.spawns.length; ++i) {
+            let spawn = this.mapInfo.spawns[i];
+            this.DrawText(context, "sp " + i, spawn.x, spawn.y, tileSize, tileSize / 2);
+            context.beginPath();
+            context.rect(spawn.x * tileSize, spawn.y * tileSize, tileSize, tileSize);
+            context.strokeStyle = "black";
+            context.lineWidth = 2;
+            context.stroke();
+        }
+    }
+
+    DrawText(context, text, x, y, tileSize, verticalOffset = null) {
+        let maxTextHeigth = tileSize / 3;
+
+        context.beginPath();
+        let height = tileSize / 10;
+        context.font = "normal " + height + "px Verdana";
+        let width = context.measureText(text).width;
+
+        height *= tileSize / width;
+        height = Math.min(height, maxTextHeigth);
+        width = tileSize;
+
+        context.font = "normal " + height + "px Verdana";
+        context.fillStyle = "#000000";
+
+        if (verticalOffset === null)
+            verticalOffset = height / 2;
+
+        let realWidth = context.measureText(text).width;
+        context.fillText(text, x * tileSize + (tileSize - realWidth) / 2, y * tileSize + verticalOffset, width);
     }
 
     DecTurns() {
