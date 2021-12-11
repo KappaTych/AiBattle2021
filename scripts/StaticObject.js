@@ -1,24 +1,25 @@
 class StaticObject extends VisibleGameObject {
-    constructor(texture) {
+    constructor(texture, char) {
         super(texture);
+        this.char = char;
     }
 }
 
 class Wall extends StaticObject {
     constructor() {
-        super(ResourceLoader.LoadPng("resources/textures/wall.png"));
+        super(ResourceLoader.LoadPng("resources/textures/wall.png"), "#");
     }
 }
 
 class Tree extends StaticObject {
     constructor() {
-        super(ResourceLoader.LoadPng("resources/textures/tree.png"));
+        super(ResourceLoader.LoadPng("resources/textures/tree.png"), "*");
     }
 }
 
 class Field extends StaticObject {
     constructor(currentSnowCount = 0, maxSnowCount = 20) {
-        super(ResourceLoader.LoadPng("resources/textures/field0.png"));
+        super(ResourceLoader.LoadPng("resources/textures/field0.png"), ".");
         this.currentSnowCount = currentSnowCount;
         this.maxSnowCount = maxSnowCount;
         this.texturesForSnow = []

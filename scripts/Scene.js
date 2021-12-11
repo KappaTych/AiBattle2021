@@ -61,7 +61,7 @@ class MapInfo {
         for (let h = 0; h < this.height; ++h) {
             map[h] = [];
             for (let w = 0; w < this.width; ++w) {
-                map[h][w] = Clone(this.map[h][w]);
+                map[h][w] = Clone(this.map[h][w].char);
             }
         }
 
@@ -439,7 +439,7 @@ class Scene {
             snowballs.push({
                 x: this.snowballs[i].x,
                 y: this.snowballs[i].y,
-                name: this.snowballs[i].currentSnowCount,
+                value: this.snowballs[i].currentSnowCount,
             })
         }
 

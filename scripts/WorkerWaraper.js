@@ -28,8 +28,8 @@ function CopyAndInit(data) {
 
     CopyDataToObject(controllerData, fullController);
 
-    fullController.Init(data.info);
-    
+    fullController.Init(data.mapInfo);
+
     return {
         complete: true,
         controller: GetDataFromObject(fullController)
