@@ -393,7 +393,7 @@
             if (select.selectedIndex == -1)
                 return null;
             let mapText = GetObjectFromStorageByName(select.options[select.selectedIndex].text);
-            gameMapInfo = MapInfo.LoadMapFromJson(mapText);
+            gameScene.mapInfo = MapInfo.LoadMapFromJson(mapText);
 
             bots = []
             let botsList = document.getElementById("botsList");
@@ -411,7 +411,7 @@
                 bots.push(new Bot(0, 0, 0, controller, data.botName.value, colors[i]));
             }
 
-            gameScene = new Scene(gameMapInfo, bots, false, true, 100,
+            gameScene = new Scene(gameScene.mapInfo, bots, false, true, 100,
                 //Hack when bots length = 0, call Update after scene assign 
                 function() {
                     setTimeout(UpdateRender, 0);
@@ -422,7 +422,7 @@
             let x = document.getElementById("tileSize").value;
             let canvas = document.getElementById("main-window");
             gameScene.Render(canvas, x);
-            document.getElementById('turnsCount').innerHTML = gameScene.turnsCount;
+            document.getElementById('turnsCount').innerHTML = gameScene.mapInfo.turns;
             let scores = gameScene.CalcScores()
             for (let i = 0; i < scores.length; ++i) {
                 GetDataFromBotInfoDiv(document.getElementById(scores[i].botName + "InfoDiv")).score.innerHTML = scores[i].value;
@@ -441,7 +441,7 @@
                 clearInterval(timerId);
             } else {
                 timerId = setInterval(function() {
-                        if (gameScene.turnsCount > 0) {
+                        if (gameScene.mapInfo.turns > 0) {
                             NextStepWithTimer();
                         } else {
                             StopAutoStep();
@@ -499,14 +499,13 @@
                 return null;
 
             let mapText = GetObjectFromStorageByName(select.options[select.selectedIndex].text);
-            gameMapInfo = MapInfo.LoadMapFromJson(mapText);
-            gameScene = new Scene(gameMapInfo, []);
+            gameScene = new Scene(MapInfo.LoadMapFromJson(mapText), []);
 
-            document.getElementById('mapWidth').innerHTML = gameMapInfo.width;
-            document.getElementById('mapHeight').innerHTML = gameMapInfo.height;
+            document.getElementById('mapWidth').innerHTML = gameScene.mapInfo.width;
+            document.getElementById('mapHeight').innerHTML = gameScene.mapInfo.height;
 
             let botsList = document.getElementById("botsList");
-            for (let i = 0; i < gameMapInfo.spawns.length; ++i) {
+            for (let i = 0; i < gameScene.mapInfo.spawns.length; ++i) {
                 let botName = "bot#" + i;
 
                 let botInfoDiv = document.createElement("div");
@@ -539,7 +538,7 @@
                 botsList.appendChild(li);
             }
 
-            document.getElementById('turnsCount').innerHTML = gameMapInfo.turns;
+            document.getElementById('turnsCount').innerHTML = gameScene.mapInfo.turns;
 
             AutoSizeRender();
         }
@@ -593,11 +592,11 @@
         }
 
         function GetGameCanvasSuitableSize() {
-            if (gameMapInfo === null || gameMapInfo === undefined)
+            if (gameScene.mapInfo === null || gameScene.mapInfo === undefined)
                 return;
             let mainWindowContainer = document.getElementById("mainWindowContainer");
-            let width = Math.floor(mainWindowContainer.offsetWidth / gameMapInfo.width);
-            let height = Math.floor(mainWindowContainer.offsetHeight / gameMapInfo.height);
+            let width = Math.floor(mainWindowContainer.offsetWidth / gameScene.mapInfo.width);
+            let height = Math.floor(mainWindowContainer.offsetHeight / gameScene.mapInfo.height);
 
             return Math.min(width, height);
         }
@@ -612,7 +611,6 @@
         let mapEditor = null;
 
         let gameScene = null;
-        let gameMapInfo = null;
         let mapEditorScene = null;
 
         let startedAutoStep = false;

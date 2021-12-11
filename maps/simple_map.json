@@ -12,6 +12,10 @@
         ["*", ".", ".", ".", ".", ".", ".", ".", "*"],
         ["*", "*", "*", "*", "*", "*", "*", "*", "*"]
     ],
+    "startSnowMap": 1,
+    "snowIncreasePeriod": 1,
+    "snowIncreaseValue": 1,
+    "lastSnowIncreaseStep": 10,
     "spawns": [{
             "x": 1,
             "y": 1
@@ -19,6 +23,10 @@
         {
             "x": 7,
             "y": 7
+        },
+        {
+            "x": 7,
+            "y": 1
         }
     ],
     "bases": [{
@@ -40,7 +48,17 @@
                 "x": 7,
                 "y": 7
             }
+        },
+        {
+            "topLeft": {
+                "x": 7,
+                "y": 1
+            },
+            "bottomRight": {
+                "x": 7,
+                "y": 1
+            }
         }
     ],
-    "turns": 10
+    "turns": 400
 }

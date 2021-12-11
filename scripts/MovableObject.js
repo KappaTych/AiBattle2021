@@ -39,13 +39,13 @@ class Bot extends ControlledObject {
 }
 
 class Snowball extends MovableObject {
-    constructor(x, y, dir, currentSnowCount = 0) {
+    constructor(x, y, dir, currentSnowCount = 1, maxSnowCount = 100) {
         super(x, y, dir, ResourceLoader.LoadPng("resources/textures/snowball0.png"));
 
         this.currentSnowCount = currentSnowCount;
-        this.maxSnowCount = 3;
+        this.maxSnowCount = maxSnowCount;
         this.texturesForSnowBall = []
-        for (let i = 0; i <= this.maxSnowCount; ++i)
+        for (let i = 0; i <= 3; ++i)
             this.texturesForSnowBall.push(ResourceLoader.LoadPng("resources/textures/snowball" + i + ".png"));
     }
 
@@ -53,7 +53,12 @@ class Snowball extends MovableObject {
         if (count > this.maxSnowCount)
             throw "You cannot add snow more than the maximum value";
         this.currentSnowCount = count;
-        this.texture = this.texturesForSnowBall[this.currentSnowCount];
+
+        this.texture = this.texturesForSnowBall[0];
+        for (let i = 1; i < 4; ++i) {
+            if (this.currentSnowCount > i * this.maxSnowCount / 4)
+                this.texture = this.texturesForSnowBall[i];
+        }
     }
 
     GetSnowCount() {
@@ -68,9 +73,20 @@ class Snowball extends MovableObject {
     }
 
     DecSnow() {
-        if (this.currentSnowCount - 1 < 0)
+        if (this.currentSnowCount - 1 < 1)
             return 0;
         this.SetSnowCount(this.GetSnowCount() - 1);
         return -1;
+    }
+
+    AddSnow(value) {
+        let ost = this.maxSnowCount - this.GetSnowCount() - value;
+        if (ost >= 0) {
+            this.SetSnowCount(this.GetSnowCount() + value);
+            return 0;
+        } else {
+            this.SetSnowCount(this.maxSnowCount);
+            return -ost;
+        }
     }
 }
