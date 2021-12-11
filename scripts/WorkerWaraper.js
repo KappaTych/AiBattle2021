@@ -3,7 +3,7 @@ function GetDataFromObject(object) {
 }
 
 function CopyDataToObject(source, dist) {
-    for (var attr in source) {
+    for (let attr in source) {
         if (source.hasOwnProperty(attr))
             dist[attr] = source[attr];
     }
