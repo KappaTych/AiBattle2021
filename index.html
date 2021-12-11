@@ -518,10 +518,15 @@
                 let input = document.createElement("input");
                 input.value = botName;
                 input.name = "name";
-                input.onchange = function(text) {
-                    gameScene.RenameBot(botInfoDiv.id.replace("InfoDiv", ""), input.value);
-                    botInfoDiv.id = input.value + "InfoDiv";
-                    UpdateRender();
+                input.onchange = function() {
+                    if (document.getElementById(input.value + "InfoDiv") === null || document.getElementById(input.value + "InfoDiv" === undefined)) {
+                        gameScene.RenameBot(botInfoDiv.id.replace("InfoDiv", ""), input.value);
+                        botInfoDiv.id = input.value + "InfoDiv";
+                        UpdateRender();
+                    } else {
+                        input.value = botInfoDiv.id.replace("InfoDiv", "");
+                        alert("bot name " + input.value + " already exist");
+                    }
                 }
 
                 let scoreLabel = document.createElement("label");
