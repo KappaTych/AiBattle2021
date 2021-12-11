@@ -445,15 +445,22 @@ class Scene {
     UpdateDynamicLayerAfterBotChooseDirection(botIndex, dir) {
         this.bots[botIndex].SetDir(dir);
 
-        let newX = this.bots[botIndex].x + Scene.moves[dir].x;
         let newY = this.bots[botIndex].y + Scene.moves[dir].y;
+        let newX = this.bots[botIndex].x + Scene.moves[dir].x;
+
+        if (newX < 0 || newX >= this.mapInfo.width || newY < 0 || newY >= this.mapInfo.height) {
+            console.log("bot index:" + botIndex + "tried get out of bounds");
+            return;
+        }
+
         let afterY = newY + Scene.moves[dir].y;
         let afterX = newX + Scene.moves[dir].x;
 
         let map = this.mapInfo.map;
         if (map[newY][newX].constructor.name === "Field") {
             if (this.dynamicLayer[newY][newX] == null) {
-                if (map[afterY][afterX].constructor.name === "Field" && this.dynamicLayer[afterY][afterX] == null) {
+                if ((afterX > 0 && afterX < this.mapInfo.width && afterY > 0 && afterY < this.mapInfo.height) &&
+                    (map[afterY][afterX].constructor.name === "Field" && this.dynamicLayer[afterY][afterX] == null)) {
                     if (map[newY][newX].GetSnowCount() + map[newY][newX].GetSnowCount() > 0) {
                         let snowball = new Snowball(afterX, afterY, dir);
                         map[newY][newX].SetSnowCount(snowball.AddSnow(map[newY][newX].GetSnowCount()));
@@ -465,7 +472,8 @@ class Scene {
                 this.MoveDynamicObject(this.bots[botIndex], newX, newY);
             } else {
                 if (this.dynamicLayer[newY][newX].constructor.name === "Snowball") {
-                    if (map[afterY][afterX].constructor.name === "Field" && this.dynamicLayer[afterY][afterX] == null) {
+                    if ((afterX > 0 && afterX < this.mapInfo.width && afterY > 0 && afterY < this.mapInfo.height) &&
+                        (map[afterY][afterX].constructor.name === "Field" && this.dynamicLayer[afterY][afterX] == null)) {
                         let snowball = this.dynamicLayer[newY][newX];
                         map[newY][newX].SetSnowCount(snowball.AddSnow(map[newY][newX].GetSnowCount()));
                         map[afterY][afterX].SetSnowCount(snowball.AddSnow(map[afterY][afterX].GetSnowCount()));
