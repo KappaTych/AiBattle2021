@@ -14,6 +14,20 @@ class PlayerBase extends GameObject {
     }
 }
 
+function ValidateNotNegativeNumber(number, nameForError) {
+    if (typeof number !== "number") {
+        alert(nameForError + " not number");
+        return false;
+    }
+
+    if (number < 0) {
+        alert(nameForError + " < 0");
+        return false;
+    }
+
+    return true;
+}
+
 function ValidatePositiveNumber(number, nameForError) {
     if (typeof number !== "number") {
         alert(nameForError + " not number");
@@ -118,8 +132,7 @@ class MapInfo {
     }
 
     static ValidateSpawns(obj) {
-        if (obj.spawns.length < 0) {
-            alert("spawns.length < 0")
+        if (!ValidateNotNegativeNumber(obj.spawns.length, "spawns.length")) {
             return false;
         }
 
@@ -129,8 +142,13 @@ class MapInfo {
         }
 
         for (let i = 0; i < obj.spawns.length; ++i) {
-            if (typeof obj.spawns[i].x !== "number" || typeof obj.spawns[i].y !== "number") {
-                alert("wrong spawn #" + i + " format");
+            if (!(ValidateNotNegativeNumber(obj.spawns[i].x, "spawn.x") &&
+                    ValidateNotNegativeNumber(obj.spawns[i].y, "spawn.y"))) {
+                return false;
+            }
+
+            if (obj.map[obj.spawns[i].y][obj.spawns[i].x] !== ".") {
+                alert("spawn #" + i + " does not locate on the field");
                 return false;
             }
         }
@@ -141,22 +159,19 @@ class MapInfo {
     static ValidateBases(obj) {
         for (let i = 0; i < obj.bases.length; ++i) {
             let topLeft = obj.bases[i].topLeft;
-            if (typeof topLeft.x !== "number" || typeof topLeft.y !== "number") {
-                alert("wrong topLeft base #" + i + " format");
-                return false;
-            }
             let bottomRight = obj.bases[i].bottomRight;
-            if (typeof bottomRight.x !== "number" || typeof bottomRight.y !== "number") {
-                alert("wrong bottomRight base #" + i + " format");
+
+            if (!(ValidateNotNegativeNumber(topLeft.x, "topLeft.x") && ValidateNotNegativeNumber(topLeft.y, "topLeft.y") &&
+                    ValidateNotNegativeNumber(bottomRight.x, "bottomRight.x") && ValidateNotNegativeNumber(bottomRight.y, "bottomRight.y"))) {
                 return false;
             }
 
             if (topLeft.x > bottomRight.x) {
-                alert("base #" + i + "topLeft.x>bottomRight.x");
+                alert("base #" + i + " topLeft.x>bottomRight.x");
                 return false;
             }
             if (topLeft.y > bottomRight.y) {
-                alert("base #" + i + "topLeft.y>bottomRight.y");
+                alert("base #" + i + " topLeft.y>bottomRight.y");
                 return false;
             }
         }
@@ -165,16 +180,10 @@ class MapInfo {
     }
 
     static ValidateStartSnowMap(obj) {
-        if (typeof obj.startSnowMap === "number") {
-            if (obj.startSnowMap <= 0) {
-                alert("startSnowMap <= 0");
-                return false;
-            }
+        if (ValidateNotNegativeNumber(obj.startSnowMap, "obj.startSnowMap"))
             return true;
-        }
 
         if (typeof obj.startSnowMap === "object") {
-
             let width = obj.width * 1;
             let height = obj.height * 1;
 
@@ -195,7 +204,7 @@ class MapInfo {
                 }
 
                 for (let w = 0; w < width; ++w) {
-                    if (!ValidatePositiveNumber(obj.startSnowMap[h][w], "startSnowMap " + w + " " + h)) {
+                    if (!ValidateNotNegativeNumber(obj.startSnowMap[h][w], "startSnowMap " + w + " " + h)) {
                         return false;
                     }
                 }
@@ -213,17 +222,12 @@ class MapInfo {
     }
 
     static ValidateLastSnowIncreaseStep(obj) {
-        return ValidatePositiveNumber(obj.lastSnowIncreaseStep, "lastSnowIncreaseStep");
+        return ValidateNotNegativeNumber(obj.lastSnowIncreaseStep, "lastSnowIncreaseStep");
     }
 
     static ValidateSnowIncreaseValue(obj) {
-        if (typeof obj.snowIncreaseValue === "number") {
-            if (obj.snowIncreaseValue <= 0) {
-                alert("snowIncreaseValue <= 0");
-                return false;
-            }
+        if (ValidateNotNegativeNumber(obj.snowIncreaseValue, "obj.snowIncreaseValue"))
             return true;
-        }
 
         if (typeof obj.snowIncreaseValue === "object") {
             let width = obj.width * 1;
@@ -246,7 +250,7 @@ class MapInfo {
                 }
 
                 for (let w = 0; w < width; ++w) {
-                    if (!ValidatePositiveNumber(obj.startSnowMap[h][w], "snowIncreaseValue " + w + " " + h)) {
+                    if (!ValidateNotNegativeNumber(obj.startSnowMap[h][w], "snowIncreaseValue " + w + " " + h)) {
                         return false;
                     }
                 }
