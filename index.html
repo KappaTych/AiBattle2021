@@ -638,6 +638,9 @@
         new Field();
         new Bot();
         new Snowball();
+        for (let index in colors) {
+            new Bot(0, 0, 0, null, colors[index], colors[index]);
+        }
 
         window.onload = function() {
             InitTabs();

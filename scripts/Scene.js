@@ -265,15 +265,15 @@ class MapInfo {
 
     static IsJsonValid(json) {
         let obj = JSON.parse(json);
-        return this.ValidateSize(obj) &&
-            this.ValidateMap(obj) &&
-            this.ValidateTurns(obj) &&
-            this.ValidateSpawns(obj) &&
-            this.ValidateBases(obj) &&
-            this.ValidateStartSnowMap(obj) &&
-            this.ValidateSnowIncreasePeriod(obj) &&
-            this.ValidateLastSnowIncreaseStep(obj) &&
-            this.ValidateSnowIncreaseValue(obj);
+        return MapInfo.ValidateSize(obj) &&
+            MapInfo.ValidateMap(obj) &&
+            MapInfo.ValidateTurns(obj) &&
+            MapInfo.ValidateSpawns(obj) &&
+            MapInfo.ValidateBases(obj) &&
+            MapInfo.ValidateStartSnowMap(obj) &&
+            MapInfo.ValidateSnowIncreasePeriod(obj) &&
+            MapInfo.ValidateLastSnowIncreaseStep(obj) &&
+            MapInfo.ValidateSnowIncreaseValue(obj);
     }
 
     static LoadMapFromJson(json) {
