@@ -4,8 +4,12 @@ function RunEval(input) {
 
 function ValidateController(controller) {
     try {
-        return controller.Init != null && controller.Init != undefined && typeof controller.Init === 'function' &&
-            controller.GetDirection != null && controller.GetDirection != undefined && typeof controller.GetDirection === 'function';
+        return controller.Init != null &&
+            controller.Init != undefined &&
+            typeof controller.Init === 'function' &&
+            controller.GetDirection != null &&
+            controller.GetDirection != undefined &&
+            typeof controller.GetDirection === 'function';
     } catch (error) {
         alert(error);
         return false;
@@ -21,6 +25,5 @@ function LoadControllerFromString(input) {
     if (!ValidateController(controller)) {
         throw "Controller broken";
     }
-    controller.text = input;
-    return controller;
+    return { controllerObj: controller, text: input };
 }

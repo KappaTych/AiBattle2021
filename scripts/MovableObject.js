@@ -15,7 +15,7 @@ class ControlledObject extends MovableObject {
     }
 
     GetDirection(mapInfo) {
-        return controller.GetDirection(mapInf);
+        return controller.controllerObj.GetDirection(mapInf);
     }
 }
 

@@ -10,20 +10,20 @@ function CopyDataToObject(source, dist) {
 }
 
 function CopyAndGetDir(data) {
-    let controllerData = data.controller;
+    let controllerData = data.controller.controllerObj;
     let fullController = eval(data.controller.text);
 
     CopyDataToObject(controllerData, fullController);
     let result = {
         complete: true,
-        controller: GetDataFromObject(fullController),
+        controller: { controllerObj: GetDataFromObject(fullController), text: data.controller.text },
         dir: fullController.GetDirection(data.info)
     };
     return result;
 }
 
 function CopyAndInit(data) {
-    let controllerData = data.controller;
+    let controllerData = data.controller.controllerObj;
     let fullController = eval(data.controller.text);
 
     CopyDataToObject(controllerData, fullController);
@@ -32,7 +32,7 @@ function CopyAndInit(data) {
 
     return {
         complete: true,
-        controller: GetDataFromObject(fullController)
+        controller: { controllerObj: GetDataFromObject(fullController), text: data.controller.text }
     };
 }
 

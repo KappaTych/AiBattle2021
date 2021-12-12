@@ -1,8 +1,9 @@
 class SceneInfoForController {
-    constructor(playerPos, enemies, snowballs) {
+    constructor(playerPos, enemies, snowballs, snowLevelMap) {
         this.playerPos = playerPos;
         this.enemies = enemies;
         this.snowball = snowballs;
+        this.snowLevelMap = snowLevelMap;
     }
 }
 
@@ -354,16 +355,72 @@ class Scene {
             spawns.sort(() => Math.random() - 0.5);
 
         for (let i = 0; i < this.bots.length; ++i) {
-            this.bots[i].x = spawns[i].x * 1;
-            this.bots[i].y = spawns[i].y * 1;
-            this.dynamicLayer[this.bots[i].y][this.bots[i].x] = this.bots[i];
+            let bot = this.bots[i];
+            bot.x = spawns[i].x * 1;
+            bot.y = spawns[i].y * 1;
+            this.dynamicLayer[bot.y][bot.x] = bot;
         }
+
+        this.logs = {
+            mapStartState: this.mapInfo.GetSafeMapInfo(),
+            startBotsInfo: this.GetSafeBotInfo(),
+            turns: []
+        };
 
         if (isAsyncBotsInit) {
             this.AsyncBotsInit(timeout, onComplete);
         } else {
             this.InitBots();
         }
+    }
+
+    GetSafeBotInfo(isFull = true) {
+        let bots = [];
+        for (let i = 0; i < this.bots.length; ++i) {
+            let bot = this.bots[i];
+            let obj = {
+                index: i,
+                id: bot.id,
+                name: bot.name,
+                x: bot.x,
+                y: bot.y,
+                dir: bot.dir,
+                controller: Clone(bot.controller.controllerObj)
+            };
+            if (isFull) {
+                obj.color = bot.color;
+                obj.controllerText = bot.controller.text;
+            }
+            bots.push(obj);
+        }
+
+        return bots;
+    }
+
+    GetSafeSnowballsInfo() {
+        let snowballs = []
+        for (let i = 0; i < this.snowballs.length; ++i) {
+            snowballs.push({
+                x: this.snowballs[i].x,
+                y: this.snowballs[i].y,
+                value: this.snowballs[i].currentSnowCount,
+                id: this.snowballs[i].id
+            })
+        }
+
+        return snowballs;
+    }
+
+    AddTurnToLogs() {
+        this.logs.turns.push({
+            snowLevelMap: this.GetSnowLevelMap(),
+            botsInfo: this.GetSafeBotInfo(false),
+            snowball: this.GetSafeSnowballsInfo(),
+        });
+    }
+
+    GetLogs() {
+        return JSON.stringify(this.logs, '\t');
     }
 
     RenameBot(oldName, newName) {
@@ -377,7 +434,7 @@ class Scene {
 
     InitBots() {
         for (let i = 0; i < this.bots.length; ++i) {
-            bots[i].controller.Init({ mapInfo: this.mapInfo.GetSafeMapInfo(), index: i });
+            bots[i].controller.controllerObj.Init({ mapInfo: this.mapInfo.GetSafeMapInfo(), index: i });
         }
     }
 
@@ -400,7 +457,7 @@ class Scene {
             function next(worker, result) {
                 worker.terminate();
                 if (result.complete) {
-                    CopyDataToObject(result.controller, scene.bots[botIndex].controller);
+                    CopyDataToObject(result.controller.controllerObj, scene.bots[botIndex].controller.controllerObj);
                 } else {
                     console.log("bot #" + botIndex + " init unsuccessful");
                 }
@@ -422,6 +479,22 @@ class Scene {
         this.dynamicLayer[dynObj.y][dynObj.x] = dynObj;
     }
 
+    GetSnowLevelMap() {
+        let snowLevelMap = [];
+        for (let h = 0; h < this.mapInfo.width; ++h) {
+            snowLevelMap[h] = [];
+            for (let w = 0; w < this.mapInfo.width; ++w) {
+                if (this.mapInfo.map[h][w].constructor.name === "Field") {
+                    snowLevelMap[h][w] = this.mapInfo.map[h][w].currentSnowCount;
+                } else {
+                    snowLevelMap[h][w] = 0;
+                }
+            }
+        }
+
+        return snowLevelMap;
+    }
+
     PrepareDataForController(botIndex) {
         let enemies = [];
         for (let i = 0; i < this.bots.length; ++i) {
@@ -434,16 +507,7 @@ class Scene {
             }
         }
 
-        let snowballs = []
-        for (let i = 0; i < this.snowballs.length; ++i) {
-            snowballs.push({
-                x: this.snowballs[i].x,
-                y: this.snowballs[i].y,
-                value: this.snowballs[i].currentSnowCount,
-            })
-        }
-
-        return new SceneInfoForController({ x: this.bots[botIndex].x, y: this.bots[botIndex].y }, enemies, snowballs);
+        return new SceneInfoForController({ x: this.bots[botIndex].x, y: this.bots[botIndex].y }, enemies, this.GetSafeSnowballsInfo(), this.GetSnowLevelMap());
     }
 
     UpdateDynamicLayerAfterBotChooseDirection(botIndex, dir) {
@@ -621,7 +685,7 @@ class Scene {
             return this.CalcScores();
 
         for (let i = 0; i < this.bots.length; ++i) {
-            let dir = this.bots[i].controller.GetDirection(this.PrepareDataForController(i));
+            let dir = this.bots[i].controller.controllerObj.GetDirection(this.PrepareDataForController(i));
             if (!(dir === 0 || dir === 1 || dir === 2 || dir === 3)) {
                 alert("bad direction format " + this.bots[i].name);
                 continue;
@@ -630,6 +694,7 @@ class Scene {
         }
 
         this.UpdateSnowOnFileds();
+        this.AddTurnToLogs();
         return this.CalcScores();
     }
 
@@ -653,7 +718,7 @@ class Scene {
             function next(worker, result) {
                 worker.terminate();
                 if ((result.dir === 0 || result.dir === 1 || result.dir === 2 || result.dir === 3)) {
-                    CopyDataToObject(result.controller, scene.bots[botIndex].controller);
+                    CopyDataToObject(result.controller.controllerObj, scene.bots[botIndex].controller.controllerObj);
                     scene.UpdateDynamicLayerAfterBotChooseDirection(botIndex, result.dir);
                 } else {
                     console.log("bot #" + botIndex + "wrong dir format");
@@ -661,6 +726,7 @@ class Scene {
 
                 if (botIndex + 1 === scene.bots.length) {
                     scene.UpdateSnowOnFileds();
+                    scene.AddTurnToLogs();
                     if (onComplete !== null && onComplete !== undefined)
                         onComplete(scene.CalcScores());
                 } else {
