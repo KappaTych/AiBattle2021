@@ -1,0 +1,3 @@
+C:\Users\vladi\source\repos\AiBattle\TestServer\obj\Debug\TestServer.njsproj.AssemblyReference.cache
+C:\Users\vladi\source\repos\AiBattle\TestServer\obj\Debug\TestServer.njsproj.CoreCompileInputs.cache
+C:\Users\vladi\source\repos\AiBattle\TestServer\bin\Microsoft.NodejsTools.WebRole.dll

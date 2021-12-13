@@ -87,7 +87,7 @@ function AddControllerToPool(controller, name) {
 
 function AddMapToPool(map, name) {
     try {
-        if (MapInfo.IsJsonValid(map))
+        if (MapInfo.IsJsonValid(map).valid)
             AddToPool(map, name, mapsPoolName);
     } catch (error) {
         alert(error);

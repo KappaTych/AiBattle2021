@@ -181,8 +181,9 @@ class MapInfo {
     }
 
     static ValidateStartSnowMap(obj) {
-        if (ValidateNotNegativeNumber(obj.startSnowMap, "obj.startSnowMap"))
-            return true;
+        if (typeof obj.startSnowMap === "number") {
+            return ValidateNotNegativeNumber(obj.startSnowMap, "obj.startSnowMap");
+        }
 
         if (typeof obj.startSnowMap === "object") {
             let width = obj.width * 1;
@@ -266,23 +267,31 @@ class MapInfo {
 
     static IsJsonValid(json) {
         let obj = JSON.parse(json);
-        return MapInfo.ValidateSize(obj) &&
-            MapInfo.ValidateMap(obj) &&
-            MapInfo.ValidateTurns(obj) &&
-            MapInfo.ValidateSpawns(obj) &&
-            MapInfo.ValidateBases(obj) &&
-            MapInfo.ValidateStartSnowMap(obj) &&
-            MapInfo.ValidateSnowIncreasePeriod(obj) &&
-            MapInfo.ValidateLastSnowIncreaseStep(obj) &&
-            MapInfo.ValidateSnowIncreaseValue(obj);
+        return {
+            valid: MapInfo.ValidateSize(obj) &&
+                MapInfo.ValidateMap(obj) &&
+                MapInfo.ValidateTurns(obj) &&
+                MapInfo.ValidateSpawns(obj) &&
+                MapInfo.ValidateBases(obj) &&
+                MapInfo.ValidateStartSnowMap(obj) &&
+                MapInfo.ValidateSnowIncreasePeriod(obj) &&
+                MapInfo.ValidateLastSnowIncreaseStep(obj) &&
+                MapInfo.ValidateSnowIncreaseValue(obj),
+            object: obj
+        }
     }
 
     static LoadMapFromJson(json) {
-        let obj = JSON.parse(json);
-
-        if (!MapInfo.IsJsonValid(json)) {
-            alert("Json is invalide")
-            return;
+        let obj = null;
+        if (typeof json === 'string') {
+            let res = MapInfo.IsJsonValid(json);
+            if (!res.valid) {
+                alert("Json is invalide")
+                return;
+            }
+            obj = res.object;
+        } else {
+            obj = json;
         }
 
         let width = obj.width * 1;

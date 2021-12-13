@@ -1,0 +1,12 @@
+{
+  "name": "test-server",
+  "version": "0.0.0",
+  "description": "TestServer",
+  "main": "server.js",
+  "author": {
+    "name": ""
+  },
+  "dependencies": {
+    "tmp": "^0.2.1"
+  }
+}

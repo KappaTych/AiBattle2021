@@ -247,7 +247,7 @@
             }
 
             try {
-                if (!MapInfo.IsJsonValid(mapEditor.getValue())) {
+                if (!MapInfo.IsJsonValid(mapEditor.getValue()).valid) {
                     return;
                 }
             } catch (error) {
@@ -348,7 +348,9 @@
         }
 
         function AddMap() {
-            AddNewObjectToStorage("mapFile", mapsPoolName, UpdateAllMapListsAndUls, MapInfo.IsJsonValid);
+            AddNewObjectToStorage("mapFile", mapsPoolName, UpdateAllMapListsAndUls, function(obj) {
+                return MapInfo.IsJsonValid(obj).valid;
+            });
         }
 
         function ClearMaps() {
