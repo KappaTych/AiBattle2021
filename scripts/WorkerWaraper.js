@@ -63,13 +63,26 @@ function MakeWorkerForInit(controller, mapInfo, timeout, timeOutDelegate) {
         controller: null
     };
 
+    let timerId = null;
+    let startReceived = false;
+
     let worker = MakeWorker(GetDataFromObject.toString() + '\n' +
+        "postMessage('start');" + '\n' +
         CopyDataToObject.toString() + '\n' +
         CopyAndInit.toString() + '\n' +
         "self.onmessage=function(e){postMessage(CopyAndInit(e.data));}",
         function(e) {
-            result.complete = e.data.complete;
-            result.controller = e.data.controller;
+            if (e.data === 'start') {
+                if (!startReceived) {
+                    startReceived = true;
+                    if (timerId !== null)
+                        clearTimeout(timerId);
+                    timerId = setTimeout(timeOutDelegate, timeout, worker, result);
+                }
+            } else {
+                result.complete = e.data.complete;
+                result.controller = e.data.controller;
+            }
         });
 
     worker.postMessage({
@@ -77,8 +90,9 @@ function MakeWorkerForInit(controller, mapInfo, timeout, timeOutDelegate) {
         mapInfo: GetDataFromObject(mapInfo)
     });
 
+    const timeCorrector = 50;
     if (timeOutDelegate !== null && timeOutDelegate !== undefined) {
-        setTimeout(timeOutDelegate, timeout, worker, result);
+        timerId = setTimeout(timeOutDelegate, timeout + timeCorrector, worker, result);
     }
 
     return worker;
@@ -91,14 +105,27 @@ function MakeWorkerForGetDirection(controller, dataInfo, timeout, timeOutDelegat
         dir: -1
     };
 
+    let timerId = null;
+    let startReceived = false;
+
     let worker = MakeWorker(GetDataFromObject.toString() + '\n' +
+        "postMessage('start');" + '\n' +
         CopyDataToObject.toString() + '\n' +
         CopyAndGetDir.toString() + '\n' +
         "self.onmessage=function(e){postMessage(CopyAndGetDir(e.data));}",
         function(e) {
-            result.complete = e.data.complete;
-            result.controller = e.data.controller;
-            result.dir = e.data.dir;
+            if (e.data === 'start') {
+                if (!startReceived) {
+                    startReceived = true;
+                    if (timerId !== null)
+                        clearTimeout(timerId);
+                    timerId = setTimeout(timeOutDelegate, timeout, worker, result);
+                }
+            } else {
+                result.complete = e.data.complete;
+                result.controller = e.data.controller;
+                result.dir = e.data.dir;
+            }
         });
 
     worker.postMessage({
@@ -106,8 +133,9 @@ function MakeWorkerForGetDirection(controller, dataInfo, timeout, timeOutDelegat
         info: GetDataFromObject(dataInfo)
     });
 
+    const timeCorrector = 50;
     if (timeOutDelegate !== null && timeOutDelegate !== undefined) {
-        setTimeout(timeOutDelegate, timeout, worker, result);
+        timerId = setTimeout(timeOutDelegate, timeout + timeCorrector, worker, result);
     }
 
     return worker;
