@@ -3,7 +3,7 @@ class ResourceLoader {
 
     static LoadPng(path) {
         if (!ResourceLoader.loadedPngs.has(path)) {
-            let image = new Image();
+            const image = new Image();
             image.src = path;
             ResourceLoader.loadedPngs.set(path, image);
         }
@@ -150,7 +150,7 @@ function RemoveControllerFromPool(name) {
 }
 
 function ExistInPool(name, poolName) {
-    let names = GetPoolObjectNames(poolName);
+    const names = GetPoolObjectNames(poolName);
     for (let i = 0; i < names.length; ++i) {
         if (name === names[i])
             return true;

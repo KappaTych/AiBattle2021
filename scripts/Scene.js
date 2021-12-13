@@ -58,7 +58,7 @@ class MapInfo {
     }
 
     GetSafeMapInfo() {
-        let map = []
+        const map = []
         for (let h = 0; h < this.height; ++h) {
             map[h] = [];
             for (let w = 0; w < this.width; ++w) {
@@ -66,12 +66,12 @@ class MapInfo {
             }
         }
 
-        let spawns = []
+        const spawns = []
 
         for (let i = 0; i < this.spawns.length; ++i)
             spawns.push(Clone(this.spawns[i]));
 
-        let bases = []
+        const bases = []
 
         for (let i = 0; i < this.bases.length; ++i) {
             let topLeft = this.bases[i].topLeft;
@@ -98,8 +98,8 @@ class MapInfo {
     }
 
     static ValidateMap(obj) {
-        let width = obj.width * 1;
-        let height = obj.height * 1;
+        const width = obj.width * 1;
+        const height = obj.height * 1;
 
         if (obj.map.length !== height) {
             alert("Real map height !== height")
@@ -159,8 +159,8 @@ class MapInfo {
 
     static ValidateBases(obj) {
         for (let i = 0; i < obj.bases.length; ++i) {
-            let topLeft = obj.bases[i].topLeft;
-            let bottomRight = obj.bases[i].bottomRight;
+            const topLeft = obj.bases[i].topLeft;
+            const bottomRight = obj.bases[i].bottomRight;
 
             if (!(ValidateNotNegativeNumber(topLeft.x, "topLeft.x") && ValidateNotNegativeNumber(topLeft.y, "topLeft.y") &&
                     ValidateNotNegativeNumber(bottomRight.x, "bottomRight.x") && ValidateNotNegativeNumber(bottomRight.y, "bottomRight.y"))) {
@@ -186,8 +186,8 @@ class MapInfo {
         }
 
         if (typeof obj.startSnowMap === "object") {
-            let width = obj.width * 1;
-            let height = obj.height * 1;
+            const width = obj.width * 1;
+            const height = obj.height * 1;
 
             if (obj.startSnowMap.length !== height) {
                 alert("Real map height !== startSnowMap height")
@@ -232,8 +232,8 @@ class MapInfo {
             return true;
 
         if (typeof obj.snowIncreaseValue === "object") {
-            let width = obj.width * 1;
-            let height = obj.height * 1;
+            const width = obj.width * 1;
+            const height = obj.height * 1;
 
             if (obj.snowIncreaseValue.length !== height) {
                 alert("Real map height !== snowIncreaseValue height")
@@ -266,7 +266,7 @@ class MapInfo {
     }
 
     static IsJsonValid(json) {
-        let obj = JSON.parse(json);
+        const obj = JSON.parse(json);
         return {
             valid: MapInfo.ValidateSize(obj) &&
                 MapInfo.ValidateMap(obj) &&
@@ -284,7 +284,7 @@ class MapInfo {
     static LoadMapFromJson(json) {
         let obj = null;
         if (typeof json === 'string') {
-            let res = MapInfo.IsJsonValid(json);
+            const res = MapInfo.IsJsonValid(json);
             if (!res.valid) {
                 alert("Json is invalide")
                 return;
@@ -294,10 +294,10 @@ class MapInfo {
             obj = json;
         }
 
-        let width = obj.width * 1;
-        let height = obj.height * 1;
+        const width = obj.width * 1;
+        const height = obj.height * 1;
 
-        let map = [];
+        const map = [];
         for (let h = 0; h < height; ++h) {
             map[h] = []
             for (let w = 0; w < width; ++w) {
@@ -308,19 +308,19 @@ class MapInfo {
             }
         }
 
-        let spawns = [];
+        const spawns = [];
         for (let i = 0; i < obj.spawns.length; ++i) {
             spawns.push({ x: obj.spawns[i].x, y: obj.spawns[i].y });
         }
 
-        let bases = []
+        const bases = []
         for (let i = 0; i < obj.bases.length; ++i) {
             let topLeft = obj.bases[i].topLeft;
             let bottomRight = obj.bases[i].bottomRight;
             bases.push(new PlayerBase({ x: topLeft.x, y: topLeft.y }, { x: bottomRight.x, y: bottomRight.y }))
         }
 
-        let turns = obj.turns * 1;
+        const turns = obj.turns * 1;
 
         return new MapInfo(width, height, map, spawns, bases, turns, obj.snowIncreasePeriod, obj.lastSnowIncreaseStep, obj.snowIncreaseValue, obj.startSnowMap);
     }
@@ -350,9 +350,9 @@ class Scene {
             throw "Spawns not enough";
         }
 
-        let spawns = mapInfo.spawns.slice();
+        const spawns = mapInfo.spawns.slice();
         this.dynamicLayer = [];
-        let map = this.mapInfo.map;
+        const map = this.mapInfo.map;
         for (let h = 0; h < map.length; ++h) {
             this.dynamicLayer[h] = []
             for (let w = 0; w < map[h].length; ++w) {
@@ -364,7 +364,7 @@ class Scene {
             spawns.sort(() => Math.random() - 0.5);
 
         for (let i = 0; i < this.bots.length; ++i) {
-            let bot = this.bots[i];
+            const bot = this.bots[i];
             bot.x = spawns[i].x * 1;
             bot.y = spawns[i].y * 1;
             this.dynamicLayer[bot.y][bot.x] = bot;
@@ -384,10 +384,10 @@ class Scene {
     }
 
     GetSafeBotInfo(isFull = true) {
-        let bots = [];
+        const bots = [];
         for (let i = 0; i < this.bots.length; ++i) {
-            let bot = this.bots[i];
-            let obj = {
+            const bot = this.bots[i];
+            const obj = {
                 index: i,
                 id: bot.id,
                 name: bot.name,
@@ -407,7 +407,7 @@ class Scene {
     }
 
     GetSafeSnowballsInfo() {
-        let snowballs = []
+        const snowballs = []
         for (let i = 0; i < this.snowballs.length; ++i) {
             snowballs.push({
                 x: this.snowballs[i].x,
@@ -460,7 +460,7 @@ class Scene {
             return;
         }
 
-        this.currentWorker = MakeWorkerForInit(
+        MakeWorkerForInit(
             scene.bots[botIndex].controller, { mapInfo: scene.mapInfo.GetSafeMapInfo(), index: botIndex },
             timeout,
             function next(worker, result) {
@@ -489,7 +489,7 @@ class Scene {
     }
 
     GetSnowLevelMap() {
-        let snowLevelMap = [];
+        const snowLevelMap = [];
         for (let h = 0; h < this.mapInfo.width; ++h) {
             snowLevelMap[h] = [];
             for (let w = 0; w < this.mapInfo.width; ++w) {
@@ -505,7 +505,7 @@ class Scene {
     }
 
     PrepareDataForController(botIndex) {
-        let enemies = [];
+        const enemies = [];
         for (let i = 0; i < this.bots.length; ++i) {
             if (i != botIndex) {
                 enemies.push({
@@ -522,24 +522,24 @@ class Scene {
     UpdateDynamicLayerAfterBotChooseDirection(botIndex, dir) {
         this.bots[botIndex].SetDir(dir);
 
-        let newY = this.bots[botIndex].y + Scene.moves[dir].y;
-        let newX = this.bots[botIndex].x + Scene.moves[dir].x;
+        const newY = this.bots[botIndex].y + Scene.moves[dir].y;
+        const newX = this.bots[botIndex].x + Scene.moves[dir].x;
 
         if (newX < 0 || newX >= this.mapInfo.width || newY < 0 || newY >= this.mapInfo.height) {
             console.log("bot index:" + botIndex + "tried get out of bounds");
             return;
         }
 
-        let afterY = newY + Scene.moves[dir].y;
-        let afterX = newX + Scene.moves[dir].x;
+        const afterY = newY + Scene.moves[dir].y;
+        const afterX = newX + Scene.moves[dir].x;
 
-        let map = this.mapInfo.map;
+        const map = this.mapInfo.map;
         if (map[newY][newX].constructor.name === "Field") {
             if (this.dynamicLayer[newY][newX] == null) {
                 if ((afterX > 0 && afterX < this.mapInfo.width && afterY > 0 && afterY < this.mapInfo.height) &&
                     (map[afterY][afterX].constructor.name === "Field" && this.dynamicLayer[afterY][afterX] == null)) {
                     if (map[newY][newX].GetSnowCount() + map[newY][newX].GetSnowCount() > 0) {
-                        let snowball = new Snowball(afterX, afterY, dir);
+                        const snowball = new Snowball(afterX, afterY, dir);
                         map[newY][newX].SetSnowCount(snowball.AddSnow(map[newY][newX].GetSnowCount()));
                         map[afterY][afterX].SetSnowCount(snowball.AddSnow(map[afterY][afterX].GetSnowCount()));
                         this.snowballs.push(snowball);
@@ -551,7 +551,7 @@ class Scene {
                 if (this.dynamicLayer[newY][newX].constructor.name === "Snowball") {
                     if ((afterX > 0 && afterX < this.mapInfo.width && afterY > 0 && afterY < this.mapInfo.height) &&
                         (map[afterY][afterX].constructor.name === "Field" && this.dynamicLayer[afterY][afterX] == null)) {
-                        let snowball = this.dynamicLayer[newY][newX];
+                        const snowball = this.dynamicLayer[newY][newX];
                         map[newY][newX].SetSnowCount(snowball.AddSnow(map[newY][newX].GetSnowCount()));
                         map[afterY][afterX].SetSnowCount(snowball.AddSnow(map[afterY][afterX].GetSnowCount()));
                         this.MoveDynamicObject(this.dynamicLayer[newY][newX], afterX, afterY);
@@ -563,7 +563,7 @@ class Scene {
     }
 
     UpdateSnowOnFileds() {
-        let map = this.mapInfo.map;
+        const map = this.mapInfo.map;
         if (this.startTurnsCount - this.mapInfo.turns < this.mapInfo.lastSnowIncreaseStep &&
             (this.startTurnsCount - this.mapInfo.turns) % this.mapInfo.snowIncreasePeriod === 0) {
             for (let h = 0; h < map.length; ++h) {
@@ -580,7 +580,7 @@ class Scene {
     }
 
     CalcScores() {
-        let scores = [];
+        const scores = [];
         for (let i = 0; i < this.bots.length; ++i) {
             scores[i] = { value: 0, botName: this.bots[i].name };
             for (let h = this.mapInfo.bases[i].topLeft.y; h <= this.mapInfo.bases[i].bottomRight.y; ++h) {
@@ -598,10 +598,10 @@ class Scene {
     }
 
     Render(canvas, tileSize = 20) {
-        let map = this.mapInfo.map;
+        const map = this.mapInfo.map;
         canvas.width = map[0].length * tileSize;
         canvas.height = map.length * tileSize;
-        let context = canvas.getContext('2d');
+        const context = canvas.getContext('2d');
         for (let h = 0; h < map.length; ++h) {
             for (let w = 0; w < map[h].length; ++w) {
                 context.drawImage(map[h][w].texture, w * tileSize, h * tileSize, tileSize, tileSize);
@@ -610,8 +610,8 @@ class Scene {
 
         if (this.bots.length > 0) {
             for (let i = 0; i < this.bots.length; ++i) {
-                let topLeft = this.mapInfo.bases[i].topLeft;
-                let bottomRight = this.mapInfo.bases[i].bottomRight;
+                const topLeft = this.mapInfo.bases[i].topLeft;
+                const bottomRight = this.mapInfo.bases[i].bottomRight;
                 context.beginPath();
                 context.rect(topLeft.x * tileSize, topLeft.y * tileSize, (bottomRight.x - topLeft.x + 1) * tileSize, (bottomRight.y - topLeft.y + 1) * tileSize);
                 context.fillStyle = this.bots[i].color;
@@ -620,8 +620,8 @@ class Scene {
             }
         } else {
             for (let i = 0; i < this.mapInfo.bases.length; ++i) {
-                let topLeft = this.mapInfo.bases[i].topLeft;
-                let bottomRight = this.mapInfo.bases[i].bottomRight;
+                const topLeft = this.mapInfo.bases[i].topLeft;
+                const bottomRight = this.mapInfo.bases[i].bottomRight;
                 context.beginPath();
                 context.rect(topLeft.x * tileSize, topLeft.y * tileSize, (bottomRight.x - topLeft.x + 1) * tileSize, (bottomRight.y - topLeft.y + 1) * tileSize);
                 context.fillStyle = Scene.baseDefaultColors[i];
@@ -630,14 +630,14 @@ class Scene {
         }
 
         for (let i = 0; i < this.bots.length; ++i) {
-            let bot = this.bots[i];
+            const bot = this.bots[i];
             context.beginPath();
             context.drawImage(bot.texture, bot.x * tileSize, bot.y * tileSize, tileSize, tileSize);
             this.DrawText(context, bot.name, bot.x, bot.y, tileSize)
         }
 
         for (let i = 0; i < this.snowballs.length; ++i) {
-            let snowball = this.snowballs[i];
+            const snowball = this.snowballs[i];
             context.drawImage(snowball.texture, snowball.x * tileSize, snowball.y * tileSize, tileSize, tileSize);
         }
 
@@ -648,7 +648,7 @@ class Scene {
 
     DrawSpawns(context, tileSize) {
         for (let i = 0; i < this.mapInfo.spawns.length; ++i) {
-            let spawn = this.mapInfo.spawns[i];
+            const spawn = this.mapInfo.spawns[i];
             this.DrawText(context, "sp " + i, spawn.x, spawn.y, tileSize, tileSize / 2);
             context.beginPath();
             context.rect(spawn.x * tileSize, spawn.y * tileSize, tileSize, tileSize);
@@ -694,7 +694,7 @@ class Scene {
             return this.CalcScores();
 
         for (let i = 0; i < this.bots.length; ++i) {
-            let dir = this.bots[i].controller.controllerObj.GetDirection(this.PrepareDataForController(i));
+            const dir = this.bots[i].controller.controllerObj.GetDirection(this.PrepareDataForController(i));
             if (!(dir === 0 || dir === 1 || dir === 2 || dir === 3)) {
                 alert("bad direction format " + this.bots[i].name);
                 continue;
@@ -720,7 +720,7 @@ class Scene {
                 onComplete(scene.CalcScores());
             return;
         }
-        this.currentWorker = MakeWorkerForGetDirection(
+        MakeWorkerForGetDirection(
             scene.bots[botIndex].controller,
             scene.PrepareDataForController(botIndex),
             timeout,

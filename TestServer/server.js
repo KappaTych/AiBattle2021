@@ -28,19 +28,19 @@ for (let i = 0; i < botsControllers.length; ++i)
 let isRandomSpawn = false;
 let timeout = 100;
 
-let scene = new lib.Scene(mapInfo, bots, isRandomSpawn, true, timeout,
+let gameScene = new lib.Scene(mapInfo, bots, isRandomSpawn, true, timeout,
     function () {
         console.log("init complite");
         Step();
     });
 
 function Step() {
-    if (scene.mapInfo.turns === 0) {
-        console.log(scene.CalcScores());
+    if (gameScene.mapInfo.turns === 0) {
+        console.log(gameScene.CalcScores());
         process.exit(0);
     }
     else {
-        scene.NextStepWithTimer(100, Step);
+        gameScene.NextStepWithTimer(100, Step);
     }
 }
 

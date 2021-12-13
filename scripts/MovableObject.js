@@ -80,7 +80,7 @@ class Snowball extends MovableObject {
     }
 
     AddSnow(value) {
-        let ost = this.maxSnowCount - this.GetSnowCount() - value;
+        const ost = this.maxSnowCount - this.GetSnowCount() - value;
         if (ost >= 0) {
             this.SetSnowCount(this.GetSnowCount() + value);
             return 0;

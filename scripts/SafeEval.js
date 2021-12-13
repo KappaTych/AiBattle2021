@@ -21,7 +21,7 @@ function ValidateControllerText(text) {
 }
 
 function LoadControllerFromString(input) {
-    let controller = RunEval(input);
+    const controller = RunEval(input);
     if (!ValidateController(controller)) {
         throw "Controller broken";
     }

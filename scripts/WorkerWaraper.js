@@ -10,11 +10,11 @@ function CopyDataToObject(source, dist) {
 }
 
 function CopyAndGetDir(data) {
-    let controllerData = data.controller.controllerObj;
-    let fullController = eval(data.controller.text);
+    const controllerData = data.controller.controllerObj;
+    const fullController = eval(data.controller.text);
 
     CopyDataToObject(controllerData, fullController);
-    let result = {
+    const result = {
         complete: true,
         controller: { controllerObj: GetDataFromObject(fullController), text: data.controller.text },
         dir: fullController.GetDirection(data.info)
@@ -23,8 +23,8 @@ function CopyAndGetDir(data) {
 }
 
 function CopyAndInit(data) {
-    let controllerData = data.controller.controllerObj;
-    let fullController = eval(data.controller.text);
+    const controllerData = data.controller.controllerObj;
+    const fullController = eval(data.controller.text);
 
     CopyDataToObject(controllerData, fullController);
 
@@ -50,7 +50,7 @@ function MakeWorker(workerCode, onmessageDelegate) {
         blob.append(workerCode);
         blob = blob.getBlob();
     }
-    let worker = new Worker(URL.createObjectURL(blob));
+    const worker = new Worker(URL.createObjectURL(blob));
     if (onmessageDelegate !== null && onmessageDelegate !== undefined)
         worker.onmessage = onmessageDelegate;
 
@@ -58,7 +58,7 @@ function MakeWorker(workerCode, onmessageDelegate) {
 }
 
 function MakeWorkerForInit(controller, mapInfo, timeout, timeOutDelegate) {
-    let result = {
+    const result = {
         complete: false,
         controller: null
     };
@@ -66,7 +66,7 @@ function MakeWorkerForInit(controller, mapInfo, timeout, timeOutDelegate) {
     let timerId = null;
     let startReceived = false;
 
-    let worker = MakeWorker(GetDataFromObject.toString() + '\n' +
+    const worker = MakeWorker(GetDataFromObject.toString() + '\n' +
         "postMessage('start');" + '\n' +
         CopyDataToObject.toString() + '\n' +
         CopyAndInit.toString() + '\n' +
@@ -99,7 +99,7 @@ function MakeWorkerForInit(controller, mapInfo, timeout, timeOutDelegate) {
 }
 
 function MakeWorkerForGetDirection(controller, dataInfo, timeout, timeOutDelegate) {
-    let result = {
+    const result = {
         complete: false,
         controller: null,
         dir: -1
@@ -108,7 +108,7 @@ function MakeWorkerForGetDirection(controller, dataInfo, timeout, timeOutDelegat
     let timerId = null;
     let startReceived = false;
 
-    let worker = MakeWorker(GetDataFromObject.toString() + '\n' +
+    const worker = MakeWorker(GetDataFromObject.toString() + '\n' +
         "postMessage('start');" + '\n' +
         CopyDataToObject.toString() + '\n' +
         CopyAndGetDir.toString() + '\n' +
