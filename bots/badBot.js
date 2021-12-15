@@ -3,10 +3,11 @@ function GetController() {
         x: 1,
         y: 1,
         Init: function(d) {
-            this.x = 10;
-            this.y = 20;
+            while (true) {}
+            return 1;
         },
         GetDirection: function(d) {
+            while (true) {}
             return this.GetRandomInt(0, 4);
         },
         GetRandomInt: function(min, max) {

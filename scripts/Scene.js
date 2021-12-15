@@ -340,7 +340,7 @@ class Scene {
         "violet"
     ];
 
-    constructor(mapInfo, bots, isRandomSpawn = false, isAsyncBotsInit = false, timeout = 10, onComplete = null) {
+    constructor(mapInfo, bots, isRandomSpawn = false, isAsyncBotsInit = false, timeout = 10, onComplete = null, isBotInit = true) {
         this.mapInfo = mapInfo;
         this.bots = bots;
         this.snowballs = [];
@@ -376,10 +376,12 @@ class Scene {
             turns: []
         };
 
-        if (isAsyncBotsInit) {
-            this.AsyncBotsInit(timeout, onComplete);
-        } else {
-            this.InitBots();
+        if (isBotInit) {
+            if (isAsyncBotsInit) {
+                this.AsyncBotsInit(timeout, onComplete);
+            } else {
+                this.InitBots();
+            }
         }
     }
 
@@ -441,10 +443,16 @@ class Scene {
         }
     }
 
+
+
     InitBots() {
         for (let i = 0; i < this.bots.length; ++i) {
-            bots[i].controller.controllerObj.Init({ mapInfo: this.mapInfo.GetSafeMapInfo(), index: i });
+            InitBot(i);
         }
+    }
+
+    InitBot(botIndex) {
+        this.bots[botIndex].controller.controllerObj.Init({ mapInfo: this.mapInfo.GetSafeMapInfo(), index: i });
     }
 
     AsyncBotsInit(timeout, onComplete) {
