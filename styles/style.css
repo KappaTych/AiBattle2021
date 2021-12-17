@@ -72,7 +72,7 @@ h1 {
 
 .buttonWrapper {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
 }
 
 .buttonMenu {

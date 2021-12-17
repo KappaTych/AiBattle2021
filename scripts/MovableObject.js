@@ -47,6 +47,7 @@ class Snowball extends MovableObject {
         this.texturesForSnowBall = []
         for (let i = 0; i <= 3; ++i)
             this.texturesForSnowBall.push(ResourceLoader.LoadPng("resources/textures/snowball" + i + ".png"));
+        this.SetSnowCount(this.currentSnowCount);
     }
 
     SetSnowCount(count) {

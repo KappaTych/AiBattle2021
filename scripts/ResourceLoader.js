@@ -1,3 +1,14 @@
+const colors = [
+    "white",
+    "red",
+    "orange",
+    "yellow",
+    "green",
+    "blue",
+    "indigo",
+    "violet"
+];
+
 class ResourceLoader {
     static loadedPngs = new Map();
 
@@ -59,6 +70,7 @@ function HexToRgbA(hex, a) {
 
 const mapsPoolName = 'AiBattleMaps';
 const controllersPoolName = 'AiBattleControllers';
+const replaysPoolName = 'AiBattleReplays';
 
 function AddToPool(str, name, poolName) {
     let names = localStorage.getItem(poolName);
@@ -83,6 +95,10 @@ function AddControllerToPool(controller, name) {
     } catch (error) {
         alert(error);
     }
+}
+
+function AddReplay(replay, name) {
+    AddToPool(replay, name, replaysPoolName);
 }
 
 function AddMapToPool(map, name) {
@@ -113,6 +129,10 @@ function ClearControllersPool() {
     ClearPool(controllersPoolName);
 }
 
+function ClearReplaysPool() {
+    ClearPool(replaysPoolName);
+}
+
 function GetPoolObjectNames(poolName) {
     let names = localStorage.getItem(poolName);
     if (names === null)
@@ -128,6 +148,10 @@ function GetMapsNames() {
 
 function GetControllersNames() {
     return GetPoolObjectNames(controllersPoolName);
+}
+
+function GetReplaysNames() {
+    return GetPoolObjectNames(replaysPoolName);
 }
 
 function GetObjectFromStorageByName(name) {

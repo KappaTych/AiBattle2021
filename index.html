@@ -9,6 +9,7 @@
     <script src="scripts/MovableObject.js"></script>
     <script src="scripts/StaticObject.js"></script>
     <script src="scripts/Scene.js"></script>
+    <script src="scripts/ReplayRenderer.js"></script>
     <script src="scripts/SafeEval.js"></script>
     <script src="scripts/WorkerWaraper.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/ace.js"></script>
@@ -19,7 +20,8 @@
         <div class="buttonWrapper">
             <button class="tab-button active buttonMenu" style="border-top-left-radius: 10px;" data-id="controllerEditorTab">Controller editor</button>
             <button class="tab-button buttonMenu" data-id="mapEditorTab">Map editor</button>
-            <button class="tab-button buttonMenu" style="border-top-right-radius: 10px;" data-id="gameTab">Game</button>
+            <button class="tab-button buttonMenu" data-id="gameTab">Game</button>
+            <button class="tab-button buttonMenu" style="border-top-right-radius: 10px;" data-id="replayTab">Replay</button>
         </div>
         <div class="contentWrapper">
             <div class="content active" id="controllerEditorTab">
@@ -87,8 +89,8 @@
                 <table border="2" cellpadding="0" cellspacing="0" margin="auto" align="center" class="fixed">
                     <tr>
                         <td width="70%" height="100%">
-                            <div id="mainWindowContainer" class="scroll">
-                                <canvas id='main-window'></canvas>
+                            <div id="gameWindowContainer" class="scroll">
+                                <canvas id='game-canvas'></canvas>
                             </div>
                         </td>
                         <td width="30%" height="100%" vertical-align="top">
@@ -130,11 +132,58 @@
                                 </div>
 
                                 <div name="renderSettingsDiv" id="renderSettingsDiv">
-                                    <button onclick="UpdateRender()">Update render</button>
-                                    <button onclick="AutoSizeRender()">Autosize render</button>
+                                    <button onclick="UpdateGameRender()">Update render</button>
+                                    <button onclick="AutoSizeGameRender()">Autosize render</button>
                                     <input type="range" min="20" max="500" step="1" id="tileSize" oninput="UpdateOutputForInputRange('tileSizeOutput',this.value)">
                                     <output id="tileSizeOutput">0</output>
                                     <label for="tileSize">Tile size</label>
+                                </div>
+                                <div>
+                                    <label>Replay name</label>
+                                    <input id="replayName">
+                                    <button onclick="SaveReplay()">Save replay</button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="content" id="replayTab">
+                <table border="2" cellpadding="0" cellspacing="0" margin="auto" align="center" class="fixed">
+                    <tr>
+                        <td width="70%" height="100%">
+                            <div id="replayWindowContainer" class="scroll">
+                                <canvas id='replay-canvas'></canvas>
+                            </div>
+                        </td>
+                        <td width="30%" height="100%" vertical-align="top">
+                            <div class="scroll">
+                                <div>
+                                    <label>Selected replay file</label>
+                                    <select name="replayList" onchange="SetReplay()" id="replayList"></select>
+                                    <button onclick="ClearReplays()">Clear replays</button>
+                                </div>
+
+                                <div>
+                                    <button onclick="UpdateReplayRender()">Update replay render</button>
+                                    <button onclick="AutoSizeReplayRender()">Autosize replay render</button>
+                                    <input type="range" min="20" max="500" step="1" id="replayTileSize" oninput="UpdateOutputForInputRange('replayTileSizeOutput',this.value)">
+                                    <output id="replayTileSizeOutput">0</output>
+                                    <label for="replayTileSize">Tile size</label>
+                                </div>
+                                <div>
+                                    <button onclick="StartReplay()">Start</button>
+                                    <button onclick="PrevReplayTurn()">Prev turn</button>
+                                    <button onclick="AutoPlayReplay()">Auto play</button>
+                                    <button onclick="NextReplayTurn()">Next turn</button>
+                                    <input type="range" min="10" max="1000" step="1" id="replayTurnTime" oninput="UpdateOutputForInputRange('replayTurnTimeOutput',this.value)">
+                                    <output id="replayTurnTimeOutput">0</output>
+                                    <label for="replayTurnTime">Frame time</label>
+                                </div>
+                                <div>
+                                    <label>Turn:</label>
+                                    <label id="currentTurn">0</label>
+                                    <ul id="replayScores"></ul>
                                 </div>
                             </div>
                         </td>
@@ -145,6 +194,47 @@
     </div>
 
     <script>
+        function StartReplay() {
+            StopReplayAutoStep();
+            SetReplay();
+        }
+
+        function PrevReplayTurn() {
+            StopReplayAutoStep();
+            replayRenderer.PrevTurn();
+            UpdateReplayRender();
+        }
+
+        function AutoPlayReplay() {
+            if (startedReplayAutoStep) {
+                clearInterval(replayTimerId);
+            } else {
+                replayTimerId = setInterval(function() {
+                        if (replayRenderer.turn + 1 < replayRenderer.replay.turns.length) {
+                            replayRenderer.NextTurn();
+                            UpdateReplayRender();
+                        } else {
+                            StopReplayAutoStep();
+                        }
+                    },
+                    document.getElementById("replayTurnTime").value);
+            }
+            startedReplayAutoStep = !startedReplayAutoStep;
+        }
+
+        function StopReplayAutoStep() {
+            if (startedReplayAutoStep) {
+                clearInterval(replayTimerId);
+                startedReplayAutoStep = false;
+            }
+        }
+
+        function NextReplayTurn() {
+            StopReplayAutoStep();
+            replayRenderer.NextTurn();
+            UpdateReplayRender();
+        }
+
         function UpdateOutputForInputRange(name, value) {
             document.getElementById(name).value = value;
         }
@@ -157,7 +247,6 @@
                 alert(error);
                 return;
             }
-
         }
 
         function InitTabs() {
@@ -179,7 +268,8 @@
                     const element = document.getElementById(id);
                     element.classList.add("active");
 
-                    StopAutoStep();
+                    StopGameAutoStep();
+                    StopReplayAutoStep();
                 }
             }
         }
@@ -347,10 +437,31 @@
             }
         }
 
+        function SaveReplay() {
+            const inputFile = document.getElementById("replayName");
+            if (!IsNameValid(inputFile.value)) {
+                alert("Bad file name");
+                return;
+            }
+            if (gameScene === null || gameScene === undefined) {
+                alert("Game not started");
+                return;
+            }
+
+            AddReplay(gameScene.GetLogs(), inputFile.value);
+
+            UpdateAllReplayListsAndUls();
+        }
+
         function AddMap() {
             AddNewObjectToStorage("mapFile", mapsPoolName, UpdateAllMapListsAndUls, function(obj) {
                 return MapInfo.IsJsonValid(obj).valid;
             });
+        }
+
+        function ClearReplays() {
+            ClearReplaysPool();
+            UpdateAllReplayListsAndUls();
         }
 
         function ClearMaps() {
@@ -389,7 +500,7 @@
         }
 
         function StartGame() {
-            StopAutoStep();
+            StopGameAutoStep();
 
             let select = document.getElementById("mapList");
             if (select.selectedIndex == -1)
@@ -416,13 +527,13 @@
             gameScene = new Scene(gameScene.mapInfo, bots, false, true, 100,
                 //Hack when bots length = 0, call Update after scene assign 
                 function() {
-                    setTimeout(UpdateRender, 0);
+                    setTimeout(UpdateGameRender, 0);
                 });
         }
 
-        function UpdateRender() {
+        function UpdateGameRender() {
             let x = document.getElementById("tileSize").value;
-            let canvas = document.getElementById("main-window");
+            let canvas = document.getElementById("game-canvas");
             gameScene.Render(canvas, x);
             document.getElementById('turnsCount').innerHTML = gameScene.mapInfo.turns;
             let scores = gameScene.CalcScores()
@@ -431,38 +542,57 @@
             }
         }
 
-        function StopAutoStep() {
-            if (startedAutoStep) {
-                clearInterval(timerId);
-                startedAutoStep = false;
+        function UpdateReplayRender() {
+            let x = document.getElementById("replayTileSize").value;
+            let canvas = document.getElementById("replay-canvas");
+            replayRenderer.Render(canvas, x);
+            document.getElementById('currentTurn').innerHTML = replayRenderer.turn;
+            let scores = replayRenderer.CalcScores();
+
+            let ul = document.getElementById("replayScores");
+            while (ul.firstChild) {
+                ul.removeChild(ul.firstChild);
+            }
+
+            for (let i = 0; i < scores.length; ++i) {
+                let li = document.createElement("li");
+                li.appendChild(document.createTextNode(scores[i].botName + ":" + scores[i].value));
+                ul.appendChild(li);
+            }
+        }
+
+        function StopGameAutoStep() {
+            if (startedGameAutoStep) {
+                clearInterval(gameTimerId);
+                startedGameAutoStep = false;
             }
         }
 
         function AutoStep() {
-            if (startedAutoStep) {
-                clearInterval(timerId);
+            if (startedGameAutoStep) {
+                clearInterval(gameTimerId);
             } else {
-                timerId = setInterval(function() {
+                gameTimerId = setInterval(function() {
                         if (gameScene.mapInfo.turns > 0) {
                             NextStepWithTimer();
                         } else {
-                            StopAutoStep();
+                            StopGameAutoStep();
                         }
                     },
                     document.getElementById("turnTime").value,
                     document.getElementById("botTurnTime").value);
             }
-            startedAutoStep = !startedAutoStep;
+            startedGameAutoStep = !startedGameAutoStep;
         }
 
         function NextStep() {
-            StopAutoStep();
+            StopGameAutoStep();
             let scores = gameScene.NextStep();
-            UpdateRender();
+            UpdateGameRender();
         }
 
         function NextStepWithTimer() {
-            gameScene.NextStepWithTimer(document.getElementById("botTurnTime").value, UpdateRender);
+            gameScene.NextStepWithTimer(document.getElementById("botTurnTime").value, UpdateGameRender);
         }
 
         function ResetMapUI() {
@@ -474,26 +604,47 @@
             document.getElementById('mapWidth').innerHTML = 0;
             document.getElementById('mapHeight').innerHTML = 0;
             document.getElementById('turnsCount').innerHTML = 0;
-            let canvas = document.getElementById("main-window");
+            let canvas = document.getElementById("game-canvas");
             const context = canvas.getContext('2d');
             context.clearRect(0, 0, canvas.width, canvas.height);
         }
 
-        function AutoSizeRender() {
+        function AutoSizeGameRender() {
             let tileSize = document.getElementById("tileSize");
             let size = GetGameCanvasSuitableSize();
             size = Math.min(Math.max(size, tileSize.min), tileSize.max);
             tileSize.value = size;
             tileSize.oninput();
             UpdateOutputForInputRange("tileSizeOutput", size)
-            UpdateRender();
+            UpdateGameRender();
+        }
+
+        function AutoSizeReplayRender() {
+            let tileSize = document.getElementById("replayTileSize");
+            let size = GetReplayCanvasSuitableSize();
+            size = Math.min(Math.max(size, tileSize.min), tileSize.max);
+            tileSize.value = size;
+            tileSize.oninput();
+            UpdateOutputForInputRange("replayTileSizeOutput", size)
+            UpdateReplayRender();
+        }
+
+        function SetReplay() {
+            StopReplayAutoStep();
+            let select = document.getElementById("replayList");
+            if (select.selectedIndex == -1)
+                return null;
+
+            let replayText = GetObjectFromStorageByName(select.options[select.selectedIndex].text);
+            replayRenderer = new ReplayRenderer(JSON.parse(replayText));
+            AutoSizeReplayRender();
         }
 
         function SetMap() {
-            StopAutoStep()
+            StopGameAutoStep()
 
             let select = document.getElementById("mapList");
-            let canvas = document.getElementById("main-window");
+            let canvas = document.getElementById("game-canvas");
 
             ResetMapUI();
 
@@ -524,7 +675,7 @@
                     if (document.getElementById(input.value + "InfoDiv") === null || document.getElementById(input.value + "InfoDiv" === undefined)) {
                         gameScene.RenameBot(botInfoDiv.id.replace("InfoDiv", ""), input.value);
                         botInfoDiv.id = input.value + "InfoDiv";
-                        UpdateRender();
+                        UpdateGameRender();
                     } else {
                         input.value = botInfoDiv.id.replace("InfoDiv", "");
                         alert("bot name " + input.value + " already exist");
@@ -547,7 +698,7 @@
 
             document.getElementById('turnsCount').innerHTML = gameScene.mapInfo.turns;
 
-            AutoSizeRender();
+            AutoSizeGameRender();
         }
 
         function InitAceEditor(name, modePath) {
@@ -569,6 +720,11 @@
         function UpdateAllControllerListsAndUls() {
             UpdateEditorUl(document.getElementById("controllerUl"), GetControllersNames(), DeleteController, SetControllerToEditor);
             SetMap();
+        }
+
+        function UpdateAllReplayListsAndUls() {
+            UpdateSelect(document.getElementById("replayList"), GetReplaysNames());
+            SetReplay();
         }
 
         function InitControllerEditor() {
@@ -601,17 +757,29 @@
         function GetGameCanvasSuitableSize() {
             if (gameScene.mapInfo === null || gameScene.mapInfo === undefined)
                 return;
-            let mainWindowContainer = document.getElementById("mainWindowContainer");
-            let width = Math.floor(mainWindowContainer.offsetWidth / gameScene.mapInfo.width);
-            let height = Math.floor(mainWindowContainer.offsetHeight / gameScene.mapInfo.height);
+            let gameWindowContainer = document.getElementById("gameWindowContainer");
+            let width = Math.floor(gameWindowContainer.offsetWidth / gameScene.mapInfo.width);
+            let height = Math.floor(gameWindowContainer.offsetHeight / gameScene.mapInfo.height);
 
             return Math.min(width, height);
         }
+
+        function GetReplayCanvasSuitableSize() {
+            let mapWidth = replayRenderer.replay.mapStartState.width;
+            let mapHeight = replayRenderer.replay.mapStartState.height;
+            let gameWindowContainer = document.getElementById("replayWindowContainer");
+            let width = Math.floor(gameWindowContainer.offsetWidth / mapWidth);
+            let height = Math.floor(gameWindowContainer.offsetHeight / mapHeight);
+            return Math.min(width, height);
+        }
+
 
         function UpdateRangeInputs() {
             document.getElementById("turnTime").oninput();
             document.getElementById("botTurnTime").oninput();
             document.getElementById("tileSize").oninput();
+            document.getElementById("replayTileSize").oninput();
+            document.getElementById("replayTurnTime").oninput();
         }
 
         let controllerEditor = null;
@@ -619,20 +787,13 @@
 
         let gameScene = null;
         let mapEditorScene = null;
+        let replayRenderer = null;
 
-        let startedAutoStep = false;
-        let timerId = null;
+        let startedGameAutoStep = false;
+        let gameTimerId = null;
 
-        const colors = [
-            "white",
-            "red",
-            "orange",
-            "yellow",
-            "green",
-            "blue",
-            "indigo",
-            "violet"
-        ];
+        let startedReplayAutoStep = false;
+        let replayTimerId = null;
 
         //preload image
         new Tree();
@@ -649,6 +810,7 @@
             InitEditors();
             UpdateAllControllerListsAndUls();
             UpdateAllMapListsAndUls();
+            UpdateAllReplayListsAndUls();
             UpdateRangeInputs();
         }
     </script>

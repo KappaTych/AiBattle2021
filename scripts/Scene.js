@@ -43,6 +43,21 @@ function ValidatePositiveNumber(number, nameForError) {
     return true;
 }
 
+class SafeMapInfo {
+    constructor(width, height, map, spawns, bases, turns, snowIncreasePeriod = 0, lastSnowIncreaseStep = 0, snowIncreaseValue = null, startSnowMap = null) {
+        this.width = width;
+        this.height = height;
+        this.map = map;
+        this.spawns = spawns;
+        this.bases = bases;
+        this.turns = turns;
+        this.snowIncreasePeriod = snowIncreasePeriod;
+        this.lastSnowIncreaseStep = lastSnowIncreaseStep;
+        this.snowIncreaseValue = snowIncreaseValue;
+        this.startSnowMap = startSnowMap;
+    }
+}
+
 class MapInfo {
     constructor(width, height, map, spawns, bases, turns, snowIncreasePeriod = 0, lastSnowIncreaseStep = 0, snowIncreaseValue = null, startSnowMap = null) {
         this.width = width;
@@ -79,7 +94,7 @@ class MapInfo {
             bases.push(new PlayerBase({ x: topLeft.x, y: topLeft.y }, { x: bottomRight.x, y: bottomRight.y }));
         }
 
-        return new MapInfo(this.width, this.height, map, spawns, bases, this.turns, this.snowIncreasePeriod, this.lastSnowIncreaseStep, Clone(this.snowIncreaseValue), Clone(this.startSnowMap));
+        return new SafeMapInfo(this.width, this.height, map, spawns, bases, this.turns, this.snowIncreasePeriod, this.lastSnowIncreaseStep, Clone(this.snowIncreaseValue), Clone(this.startSnowMap));
     }
 
     static MapCharToGameObject(char) {
@@ -329,16 +344,6 @@ class MapInfo {
 class Scene {
 
     static moves = [{ x: 0, y: -1 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: -1, y: 0 }];
-    static baseDefaultColors = [
-        "white",
-        "red",
-        "orange",
-        "yellow",
-        "green",
-        "blue",
-        "indigo",
-        "violet"
-    ];
 
     constructor(mapInfo, bots, isRandomSpawn = false, isAsyncBotsInit = false, timeout = 10, onComplete = null, isBotInit = true) {
         this.mapInfo = mapInfo;
@@ -381,6 +386,7 @@ class Scene {
                 this.AsyncBotsInit(timeout, onComplete);
             } else {
                 this.InitBots();
+                this.AddTurnToLogs();
             }
         }
     }
@@ -426,12 +432,12 @@ class Scene {
         this.logs.turns.push({
             snowLevelMap: this.GetSnowLevelMap(),
             botsInfo: this.GetSafeBotInfo(false),
-            snowball: this.GetSafeSnowballsInfo(),
+            snowballs: this.GetSafeSnowballsInfo(),
         });
     }
 
     GetLogs() {
-        return JSON.stringify(this.logs, '\t');
+        return JSON.stringify(this.logs);
     }
 
     RenameBot(oldName, newName) {
@@ -442,8 +448,6 @@ class Scene {
             }
         }
     }
-
-
 
     InitBots() {
         for (let i = 0; i < this.bots.length; ++i) {
@@ -480,8 +484,10 @@ class Scene {
                 }
 
                 if (botIndex + 1 === scene.bots.length) {
-                    if (onComplete !== null && onComplete !== undefined)
+                    if (onComplete !== null && onComplete !== undefined) {
+                        scene.AddTurnToLogs();
                         onComplete();
+                    }
                 } else {
                     scene.IterateAsyncInit(timeout, botIndex + 1, onComplete)
                 }
@@ -632,7 +638,7 @@ class Scene {
                 const bottomRight = this.mapInfo.bases[i].bottomRight;
                 context.beginPath();
                 context.rect(topLeft.x * tileSize, topLeft.y * tileSize, (bottomRight.x - topLeft.x + 1) * tileSize, (bottomRight.y - topLeft.y + 1) * tileSize);
-                context.fillStyle = Scene.baseDefaultColors[i];
+                context.fillStyle = colors[i];
                 context.fill();
             }
         }
@@ -641,7 +647,7 @@ class Scene {
             const bot = this.bots[i];
             context.beginPath();
             context.drawImage(bot.texture, bot.x * tileSize, bot.y * tileSize, tileSize, tileSize);
-            this.DrawText(context, bot.name, bot.x, bot.y, tileSize)
+            DrawText(context, bot.name, bot.x, bot.y, tileSize)
         }
 
         for (let i = 0; i < this.snowballs.length; ++i) {
@@ -657,35 +663,13 @@ class Scene {
     DrawSpawns(context, tileSize) {
         for (let i = 0; i < this.mapInfo.spawns.length; ++i) {
             const spawn = this.mapInfo.spawns[i];
-            this.DrawText(context, "sp " + i, spawn.x, spawn.y, tileSize, tileSize / 2);
+            DrawText(context, "sp " + i, spawn.x, spawn.y, tileSize, tileSize / 2);
             context.beginPath();
             context.rect(spawn.x * tileSize, spawn.y * tileSize, tileSize, tileSize);
             context.strokeStyle = "black";
             context.lineWidth = 2;
             context.stroke();
         }
-    }
-
-    DrawText(context, text, x, y, tileSize, verticalOffset = null) {
-        let maxTextHeigth = tileSize / 3;
-
-        context.beginPath();
-        let height = tileSize / 10;
-        context.font = "normal " + height + "px Verdana";
-        let width = context.measureText(text).width;
-
-        height *= tileSize / width;
-        height = Math.min(height, maxTextHeigth);
-        width = tileSize;
-
-        context.font = "normal " + height + "px Verdana";
-        context.fillStyle = "#000000";
-
-        if (verticalOffset === null)
-            verticalOffset = height / 2;
-
-        let realWidth = context.measureText(text).width;
-        context.fillText(text, x * tileSize + (tileSize - realWidth) / 2, y * tileSize + verticalOffset, width);
     }
 
     DecTurns() {
@@ -752,4 +736,26 @@ class Scene {
             }
         );
     }
+}
+
+function DrawText(context, text, x, y, tileSize, verticalOffset = null) {
+    let maxTextHeigth = tileSize / 3;
+
+    context.beginPath();
+    let height = tileSize / 10;
+    context.font = "normal " + height + "px Verdana";
+    let width = context.measureText(text).width;
+
+    height *= tileSize / width;
+    height = Math.min(height, maxTextHeigth);
+    width = tileSize;
+
+    context.font = "normal " + height + "px Verdana";
+    context.fillStyle = "#000000";
+
+    if (verticalOffset === null)
+        verticalOffset = height / 2;
+
+    let realWidth = context.measureText(text).width;
+    context.fillText(text, x * tileSize + (tileSize - realWidth) / 2, y * tileSize + verticalOffset, width);
 }
