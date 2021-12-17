@@ -782,6 +782,27 @@
             document.getElementById("replayTurnTime").oninput();
         }
 
+        function GetMapsFromGit() {
+            const baseUrl = "https://gershuk.github.io/AiBattle/maps/"
+            fetch(baseUrl + "baseMapList.json")
+                .then((response) => {
+                    return response.json();
+                })
+                .then((data) => {
+                    for (let i = 0; i < data.length; ++i) {
+                        const name = data[i];
+                        fetch(baseUrl + name)
+                            .then((response) => {
+                                return response.json();
+                            })
+                            .then((data) => {
+                                AddMapToPool(JSON.stringify(data), name);
+                                UpdateAllMapListsAndUls();
+                            });
+                    }
+                });
+        }
+
         let controllerEditor = null;
         let mapEditor = null;
 
@@ -823,6 +844,9 @@
             UpdateAllMapListsAndUls();
             UpdateAllReplayListsAndUls();
             UpdateRangeInputs();
+
+            if (GetMapsNames().length === 0)
+                GetMapsFromGit();
         }
     </script>
 </body>
