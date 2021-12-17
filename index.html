@@ -803,6 +803,27 @@
                 });
         }
 
+        function GetBotsFromGit() {
+            const baseUrl = "https://gershuk.github.io/AiBattle/bots/"
+            fetch(baseUrl + "baseBotList.json")
+                .then((response) => {
+                    return response.json();
+                })
+                .then((data) => {
+                    for (let i = 0; i < data.length; ++i) {
+                        const name = data[i];
+                        fetch(baseUrl + name)
+                            .then((response) => {
+                                return response.text();
+                            })
+                            .then((data) => {
+                                AddControllerToPool(data, name);
+                                UpdateAllControllerListsAndUls();
+                            });
+                    }
+                });
+        }
+
         let controllerEditor = null;
         let mapEditor = null;
 
@@ -838,15 +859,18 @@
         }
 
         window.onload = function() {
+            if (GetMapsNames().length === 0)
+                GetMapsFromGit();
+
+            if (GetControllersNames().length === 0)
+                GetBotsFromGit();
+
             InitTabs();
             InitEditors();
             UpdateAllControllerListsAndUls();
             UpdateAllMapListsAndUls();
             UpdateAllReplayListsAndUls();
             UpdateRangeInputs();
-
-            if (GetMapsNames().length === 0)
-                GetMapsFromGit();
         }
     </script>
 </body>
