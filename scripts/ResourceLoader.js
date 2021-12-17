@@ -1,14 +1,3 @@
-const colors = [
-    "white",
-    "red",
-    "orange",
-    "yellow",
-    "green",
-    "blue",
-    "indigo",
-    "violet"
-];
-
 class ResourceLoader {
     static loadedPngs = new Map();
 
