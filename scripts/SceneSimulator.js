@@ -20,8 +20,15 @@ function InitScene() {
 
     let controllerTexts = [$controllerTexts];
     let controllers = [];
-    for (let i = 0; i < controllerTexts.length; ++i)
-        controllers.push(LoadControllerFromString(controllerTexts[i]));
+    for (let i = 0; i < controllerTexts.length; ++i) {
+        let controller = null;
+        try {
+            controller = LoadControllerFromString(controllerTexts[i]);
+        } catch (er) {
+            controller = { Init: function () { }, GetRandomInt: function () { } };
+        }
+        controllers.push(controller);
+    }
 
     let botNames = [$botNames];
     let botColors = [$botColors];

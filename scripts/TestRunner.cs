@@ -1,42 +1,26 @@
 ﻿using Microsoft.ClearScript;
 using Microsoft.ClearScript.V8;
+using System.Text.Json;
 
 using System.Text;
 
 namespace AiBattle.TestServer;
 
+public record class SceneInitParams (string MapPath,
+                                     List<string> BotsNames,
+                                     List<string> BotsControllersPath,
+                                     List<string> BotsColors,
+                                     bool IsRandomSpawn,
+                                     int InitTimeout,
+                                     int TurnTimeout,
+                                     bool IsLogging);
+
 public class Program
 {
-    private static void Main()
+    private static void Main(string[] arg)
     {
-        Console.WriteLine("Map path");
-        var mapPath = Console.ReadLine();
-        Console.WriteLine("Bots count");
-        var botsCount = Convert.ToInt32(Console.ReadLine());
-
-        List<string> botsNames = new(botsCount);
-        List<string> botsColors = new(botsCount);
-        List<string> botsControllersPath = new(botsCount);
-        for (var i = 0; i < botsCount; ++i)
-        {
-            Console.WriteLine($"Bot {i} name");
-            botsNames.Add(Console.ReadLine());
-            Console.WriteLine($"Bot {i} color");
-            botsColors.Add(Console.ReadLine());
-            Console.WriteLine($"Bot {i} controller path");
-            botsControllersPath.Add(Console.ReadLine());
-        }
-
-        Console.WriteLine("Is random spawn");
-        var isRandomSpawn = Convert.ToBoolean(Console.ReadLine());
-        Console.WriteLine("Bot init time");
-        var initTimeout = Convert.ToInt32(Console.ReadLine());
-        Console.WriteLine("Bot turn time");
-        var turnTimeout = Convert.ToInt32(Console.ReadLine());
-        Console.WriteLine("Write info to console");
-        var isLogging = Convert.ToBoolean(Console.ReadLine());
-
-        Tester tester = new(mapPath, botsNames, botsControllersPath, botsColors, isRandomSpawn, initTimeout, turnTimeout, isLogging);
+        var filePath = arg.Length > 0 ? arg[0] : Console.ReadLine();
+        Tester tester = new (JsonSerializer.Deserialize<SceneInitParams>(File.ReadAllText(filePath)));
         tester.Run();
     }
 }
@@ -53,41 +37,34 @@ internal class Tester
     private int _botCount;
     private bool _isLogging;
 
-    public Tester(string mapPath,
-                  List<string> botsNames,
-                  List<string> controllersPaths,
-                  List<string> botsColors,
-                  bool isRandomSpawn,
-                  int initTimeout = 100,
-                  int turnTimeout = 100,
-                  bool isLogging = false)
+    public Tester(SceneInitParams sceneInitParams)
     {
-        _initTimeout = initTimeout;
-        _turnTimeout = turnTimeout;
-        _botCount = botsNames.Count;
-        _isLogging = isLogging;
+        _initTimeout = sceneInitParams.InitTimeout;
+        _turnTimeout = sceneInitParams.TurnTimeout;
+        _botCount = sceneInitParams.BotsNames.Count;
+        _isLogging = sceneInitParams.IsLogging;
 
         StringBuilder controllersTexts = new();
-        foreach (var path in controllersPaths)
+        foreach (var path in sceneInitParams.BotsControllersPath)
             controllersTexts.Append($"'{File.ReadAllText(path)}',");
         controllersTexts.Remove(controllersTexts.Length - 1, 1);
 
         StringBuilder names = new();
-        foreach (var name in botsNames)
+        foreach (var name in sceneInitParams.BotsNames)
             names.Append($"'{name}',");
         names.Remove(names.Length - 1, 1);
 
         StringBuilder colors = new();
-        foreach (var name in botsNames)
+        foreach (var name in sceneInitParams.BotsNames)
             colors.Append($"'{name}',");
         colors.Remove(colors.Length - 1, 1);
 
-        _script = SceneScript(File.ReadAllText(mapPath),
+        _script = SceneScript(File.ReadAllText(sceneInitParams.MapPath),
                               controllersTexts.ToString(),
                               names.ToString(),
                               colors.ToString(),
-                              isRandomSpawn.ToString().ToLower(),
-                              initTimeout,
+                              sceneInitParams.IsRandomSpawn.ToString().ToLower(),
+                              sceneInitParams.InitTimeout,
                               "null");
 
         if (_isLogging)
@@ -246,6 +223,7 @@ internal class Tester
         {
             lock (_locker)
             {
+                _engine.Interrupt();
                 _isInterupted = true;
             }
         }
@@ -269,6 +247,7 @@ internal class Tester
         {
             lock (_locker)
             {
+                _engine.Interrupt();
                 _isInterupted = true;
             }
         }
