@@ -30,7 +30,7 @@
                         <td width="70%" height="100%">
                             <div id="editor1_wrapper" class="app_editor_wrapper">
                                 <div id="controllerEditorText" class="app_editor"></div>
-                                <div>
+                                <div class="editorSaveLoad">
                                     <button onclick="SaveController()">SaveAs</button>
                                     <button onclick="LoadAndSetController()">Load</button>
                                     <input id="controllerFileName">
@@ -58,7 +58,7 @@
                         <td width="70%" height="100%">
                             <div id="editor2_wrapper" class="app_editor_wrapper">
                                 <div id="mapEditorText" class="app_editor"></div>
-                                <div>
+                                <div class="editorSaveLoad">
                                     <button onclick="SaveMap()">Save As</button>
                                     <button onclick="LoadAndSetMap()">Load</button>
                                     <input id="mapFileName">
@@ -384,21 +384,27 @@
 
                 let deleteButton = document.createElement("button");
                 deleteButton.classList.add("delete_button");
-                deleteButton.innerHTML = "Delete";
+                deleteButton.innerHTML = "&nbsp;";
+                deleteButton.title = "Delete";
                 deleteButton.onclick = function() {
                     onDelete(names[i]);
                 }
 
                 let editButton = document.createElement("button");
                 editButton.classList.add("edit_button");
-                editButton.innerHTML = "Edit";
+                editButton.innerHTML = "&nbsp;";
+                editButton.title = "Edit";
                 editButton.onclick = function() {
                     onEdit(names[i]);
                 }
 
+                let text = document.createElement("span");
+                text.classList = "text";
+                text.innerHTML = names[i];
+
                 li.appendChild(deleteButton);
                 li.appendChild(editButton);
-                li.appendChild(document.createTextNode(names[i]));
+                li.appendChild(text);
                 ul.appendChild(li);
             }
         }
@@ -671,6 +677,7 @@
                 let input = document.createElement("input");
                 input.value = botName;
                 input.name = "name";
+                input.size = 12;
                 input.onchange = function() {
                     if (document.getElementById(input.value + "InfoDiv") === null || document.getElementById(input.value + "InfoDiv" === undefined)) {
                         gameScene.RenameBot(botInfoDiv.id.replace("InfoDiv", ""), input.value);
