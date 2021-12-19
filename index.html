@@ -31,6 +31,7 @@
                             <div id="editor1_wrapper" class="app_editor_wrapper">
                                 <div id="controllerEditorText" class="app_editor"></div>
                                 <div class="editorSaveLoad">
+                                    <button onclick="PostCodeToCats().then((data) => {alert(data.message);});">Post code to CATS</button>
                                     <button onclick="SaveController()">SaveAs</button>
                                     <button onclick="LoadAndSetController()">Load</button>
                                     <input id="controllerFileName">
@@ -829,6 +830,36 @@
                             });
                     }
                 });
+        }
+
+        async function PostCodeToCats() {
+            if (!/^\?cid=\d+;pid=\d+;sid=[A-Za-z0-9]+$/.test(document.location.search)) {
+                alert("Bad cats path");
+                return;
+            }
+            try {
+                if (!ValidateControllerText(controllerEditor.getValue())) {
+                    return;
+                }
+            } catch (er) {
+                alert(er);
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("submitted", "1");
+            formData.append("problem_id", "5913375");
+            formData.append("de_id", "1067097");
+            formData.append("source_text", controllerEditor.getValue());
+            formData.append("submit", "1");
+
+            const url = 'https://imcs.dvfu.ru/cats/?f=problems' + document.location.search.replace(/pid=\d+;/, '').replace("?", ";") + ';json=1';
+            let response = await fetch(url, {
+                method: 'POST',
+                body: formData
+            });
+
+            return await response.json()
         }
 
         let controllerEditor = null;
