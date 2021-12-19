@@ -31,7 +31,7 @@
                             <div id="editor1_wrapper" class="app_editor_wrapper">
                                 <div id="controllerEditorText" class="app_editor"></div>
                                 <div class="editorSaveLoad">
-                                    <button onclick="PostCodeToCats().then((data) => {alert(data.message);});">Post code to CATS</button>
+                                    <button onclick="PostCodeToCats().then((data) => {alert(data.message);UpdateAllAttemptsListsAndUls();});">Post code to CATS</button>
                                     <button onclick="SaveController()">SaveAs</button>
                                     <button onclick="LoadAndSetController()">Load</button>
                                     <input id="controllerFileName">
@@ -46,7 +46,13 @@
                                     <input type="file" name="controllerFile" id="controllerFile">
                                     <button onclick="AddController()">Load controller</button>
                                     <button onclick="ClearControllers()">Clear controllers</button>
+                                </div>
+                                <div>
+                                    <button onclick="UpdateAllAttemptsListsAndUls()">Update attempts</button>
                                     <br>
+                                    <label>Attempts</label>
+                                    <br>
+                                    <ul id="attemptsUl"></ul>
                                 </div>
                             </div>
                         </td>
@@ -735,6 +741,44 @@
             SetReplay();
         }
 
+        function UpdateAllAttemptsListsAndUls() {
+            LoadAttempts().then((attempts) => {
+                const ul = document.getElementById("attemptsUl");
+                while (ul.firstChild) {
+                    ul.removeChild(ul.firstChild);
+                }
+
+                for (let i = 0; i < attempts.length; ++i) {
+                    let li = document.createElement("li");
+
+                    let editButton = document.createElement("button");
+                    editButton.classList.add("edit_button");
+                    editButton.innerHTML = "&nbsp;";
+                    editButton.title = "Edit";
+                    editButton.onclick = async function() {
+                        const url = "https://imcs.dvfu.ru/cats/?f=download_source" + document.location.search.replace(/pid=\d+;/, '').replace("?", ";") + ";json=1;" +
+                            "rid=" + attempts[i].id + ";";
+                        let response = await fetch(url, {
+                            method: 'GET'
+                        });
+                        response.text().then((text) => {
+                            SaveController();
+                            controllerEditor.setValue(text);
+                            document.getElementById("controllerFileName").value = attempts[i].id;
+                        })
+                    }
+
+                    let text = document.createElement("span");
+                    text.classList = "text";
+                    text.innerHTML = attempts[i].id + ":" + attempts[i].state_text;
+
+                    li.appendChild(editButton);
+                    li.appendChild(text);
+                    ul.appendChild(li);
+                }
+            });
+        }
+
         function InitControllerEditor() {
             let controllerFileName = document.getElementById("controllerFileName");
             controllerFileName.value = "";
@@ -853,10 +897,23 @@
             formData.append("source_text", controllerEditor.getValue());
             formData.append("submit", "1");
 
-            const url = 'https://imcs.dvfu.ru/cats/?f=problems' + document.location.search.replace(/pid=\d+;/, '').replace("?", ";") + ';json=1';
+            const url = 'https://imcs.dvfu.ru/cats/?f=problems' + document.location.search.replace(/pid=\d+;/, '').replace("?", ";") + ';json=1;';
             let response = await fetch(url, {
                 method: 'POST',
                 body: formData
+            });
+
+            return await response.json()
+        }
+
+        async function LoadAttempts() {
+            if (!/^\?cid=\d+;pid=\d+;sid=[A-Za-z0-9]+$/.test(document.location.search)) {
+                alert("Bad cats path");
+                return;
+            }
+            const url = 'https://imcs.dvfu.ru/cats/?f=console' + document.location.search.replace(/pid=\d+;/, '').replace("?", ";") + ';search=account_id%3Dthis;json=1;';
+            let response = await fetch(url, {
+                method: 'GET'
             });
 
             return await response.json()
@@ -909,6 +966,7 @@
             UpdateAllMapListsAndUls();
             UpdateAllReplayListsAndUls();
             UpdateRangeInputs();
+            UpdateAllAttemptsListsAndUls();
         }
     </script>
 </body>
