@@ -800,10 +800,10 @@
                         const name = data[i];
                         fetch(baseUrl + name)
                             .then((response) => {
-                                return response.json();
+                                return response.text();
                             })
                             .then((data) => {
-                                AddMapToPool(JSON.stringify(data), name);
+                                AddMapToPool(data, name);
                                 UpdateAllMapListsAndUls();
                             });
                     }
