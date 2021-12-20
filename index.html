@@ -184,7 +184,7 @@
                                     <button onclick="PrevReplayTurn()">Prev turn</button>
                                     <button onclick="AutoPlayReplay()">Auto play</button>
                                     <button onclick="NextReplayTurn()">Next turn</button>
-                                    <input type="range" min="10" max="1000" step="1" id="replayTurnTime" oninput="UpdateOutputForInputRange('replayTurnTimeOutput',this.value)">
+                                    <input type="range" min="5" max="100" step="1" id="replayTurnTime" oninput="UpdateOutputForInputRange('replayTurnTimeOutput',this.value)">
                                     <output id="replayTurnTimeOutput">0</output>
                                     <label for="replayTurnTime">Frame time</label>
                                 </div>
@@ -889,7 +889,7 @@
 
         async function PostCodeToCats() {
             if (!/^\?cid=\d+;pid=\d+;sid=[A-Za-z0-9]+$/.test(document.location.search)) {
-                alert("Bad cats path");
+                console.warn("Bad cats path");
                 return;
             }
             try {
@@ -919,7 +919,7 @@
 
         async function LoadAttempts() {
             if (!/^\?cid=\d+;pid=\d+;sid=[A-Za-z0-9]+$/.test(document.location.search)) {
-                alert("Bad cats path");
+                console.warn("Bad cats path");
                 return;
             }
             const url = 'https://imcs.dvfu.ru/cats/?f=console' + document.location.search.replace(/pid=\d+;/, '').replace("?", ";") + ';search=account_id%3Dthis;json=1;';
