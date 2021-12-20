@@ -165,6 +165,9 @@
                                 <div>
                                     <label>Selected replay file</label>
                                     <select name="replayList" onchange="SetReplay()" id="replayList"></select>
+                                    <br>
+                                    <input type="file" name="replayFile" id="replayFile">
+                                    <button onclick="LoadReplay()">Load replay</button>
                                     <button onclick="ClearReplays()">Clear replays</button>
                                 </div>
 
@@ -175,6 +178,7 @@
                                     <output id="replayTileSizeOutput">0</output>
                                     <label for="replayTileSize">Tile size</label>
                                 </div>
+
                                 <div>
                                     <button onclick="StartReplay()">Start</button>
                                     <button onclick="PrevReplayTurn()">Prev turn</button>
@@ -198,6 +202,10 @@
     </div>
 
     <script>
+        function LoadReplay() {
+            AddNewObjectToStorage("replayFile", replaysPoolName, UpdateAllAttemptsListsAndUls, () => true);
+        }
+
         function StartReplay() {
             StopReplayAutoStep();
             SetReplay();

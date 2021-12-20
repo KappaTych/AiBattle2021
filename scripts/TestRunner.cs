@@ -6,7 +6,7 @@ using System.Text;
 
 namespace AiBattle.TestServer;
 
-public record class SceneInitParams (string MapPath,
+public record class SceneInitParams(string MapPath,
                                      List<string> BotsNames,
                                      List<string> BotsControllersPath,
                                      List<string> BotsColors,
@@ -20,7 +20,7 @@ public class Program
     private static void Main(string[] arg)
     {
         var filePath = arg.Length > 0 ? arg[0] : Console.ReadLine();
-        Tester tester = new (JsonSerializer.Deserialize<SceneInitParams>(File.ReadAllText(filePath)));
+        Tester tester = new(JsonSerializer.Deserialize<SceneInitParams>(File.ReadAllText(filePath)));
         tester.Run();
     }
 }
@@ -153,6 +153,7 @@ internal class Tester
         }
         finally
         {
+            File.WriteAllText("log.json", (string)_engine.Evaluate("scene.GetLogs()"));
             _engine.Dispose();
         }
     }
