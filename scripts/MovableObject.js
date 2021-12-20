@@ -5,6 +5,14 @@ class MovableObject extends VisibleGameObject {
         this.x = x;
         this.y = y;
     }
+
+    SetDir(dir) {
+        this.dir = dir;
+    }
+
+    GetDir() {
+        return this.dir;
+    }
 }
 
 class ControlledObject extends MovableObject {
@@ -29,12 +37,8 @@ class Bot extends ControlledObject {
     }
 
     SetDir(dir) {
-        this.dir = dir;
+        super.SetDir(dir);
         this.texture = this.texturesForDir[this.dir];
-    }
-
-    GetDir() {
-        return this.dir;
     }
 }
 

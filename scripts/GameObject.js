@@ -24,6 +24,15 @@ class GameObject {
 class VisibleGameObject extends GameObject {
     constructor(texture) {
         super();
+        this.isVisible = true;
         this.texture = texture;
+    }
+
+    SetVisible(state) {
+        this.isVisible = state;
+    }
+
+    GetVisible() {
+        return this.isVisible;
     }
 }

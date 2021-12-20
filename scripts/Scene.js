@@ -350,6 +350,7 @@ class Scene {
         this.bots = bots;
         this.snowballs = [];
         this.startTurnsCount = this.mapInfo.turns;
+        this.snowLevelMapBeforeIncrease = this.GetSnowLevelMap();
 
         if (this.bots.length > mapInfo.spawns.length) {
             throw "Spawns not enough";
@@ -430,6 +431,7 @@ class Scene {
 
     AddTurnToLogs() {
         this.logs.turns.push({
+            snowLevelMapBeforeIncrease: this.snowLevelMapBeforeIncrease,
             snowLevelMap: this.GetSnowLevelMap(),
             botsInfo: this.GetSafeBotInfo(false),
             snowballs: this.GetSafeSnowballsInfo(),
@@ -577,6 +579,7 @@ class Scene {
     }
 
     UpdateSnowOnFileds() {
+        this.snowLevelMapBeforeIncrease = this.GetSnowLevelMap();
         const map = this.mapInfo.map;
         if (this.startTurnsCount - this.mapInfo.turns < this.mapInfo.lastSnowIncreaseStep &&
             (this.startTurnsCount - this.mapInfo.turns) % this.mapInfo.snowIncreasePeriod === 0) {

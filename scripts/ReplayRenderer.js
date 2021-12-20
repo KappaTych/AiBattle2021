@@ -1,10 +1,26 @@
+function Lerp(start, end, part) {
+    switch (part) {
+        case 0:
+            return start;
+        case 1:
+            return end;
+        default:
+            return start + (end - start) * part;
+    }
+}
+
+function AboveHalfAnim(start, end, part) {
+    return part >= 0.5 ? end : start;
+}
+
 class ReplayRenderer {
-    constructor(replay) {
+    constructor(replay, animFrameCount, updateRender) {
+        this.animFrameCount = animFrameCount;
         this.turn = 0;
         this.replay = replay;
         this.staticLevel = [];
         for (let h = 0; h < replay.mapStartState.height; ++h) {
-            this.staticLevel[h] = []
+            this.staticLevel[h] = [];
             for (let w = 0; w < replay.mapStartState.width; ++w) {
                 this.staticLevel[h][w] = MapInfo.MapCharToGameObject(replay.mapStartState.map[h][w]);
                 if (this.staticLevel[h][w].constructor.name === "Field") {
@@ -23,73 +39,90 @@ class ReplayRenderer {
 
         this.snowballs = {};
 
-        this.SetTurn(0);
+        setTimeout(() => this.SetTurn(0, updateRender, 1), 0);
     }
 
-    SetSnowLevel() {
+    SetSnowLevel(animFrameIndex) {
         const map = this.staticLevel;
-        const turn = this.replay.turns[this.turn];
+        const prevTurnInfo = this.replay.turns[Math.max(this.turn - 1, 0)];
+        const curTurnInfo = this.replay.turns[this.turn];
         for (let h = 0; h < map.length; ++h) {
             for (let w = 0; w < map[h].length; ++w) {
                 if (map[h][w].constructor.name === "Field") {
-                    map[h][w].SetSnowCount(turn.snowLevelMap[h][w]);
+                    if (animFrameIndex * 1.0 / this.animFrameCount >= 0.8) {
+                        map[h][w].SetSnowCount(curTurnInfo.snowLevelMap[h][w]);
+                    } else {
+                        if (animFrameIndex * 1.0 / this.animFrameCount >= 0.6) {
+                            map[h][w].SetSnowCount(curTurnInfo.snowLevelMapBeforeIncrease[h][w]);
+                        } else {
+                            map[h][w].SetSnowCount(prevTurnInfo.snowLevelMap[h][w])
+                        };
+                    }
                 }
             }
         }
     }
 
-    UpdateBotsPositions() {
-        const turn = this.replay.turns[this.turn];
+    UpdateBotsPositions(animFrameIndex) {
+        const prevTurnInfo = this.replay.turns[Math.max(this.turn - 1, 0)];
+        const curTurnInfo = this.replay.turns[this.turn];
 
-        for (let i = 0; i < turn.botsInfo.length; ++i) {
-            const botInfo = turn.botsInfo[i];
-            this.bots[botInfo.index].x = botInfo.x;
-            this.bots[botInfo.index].y = botInfo.y;
-            this.bots[botInfo.index].SetDir(botInfo.dir);
+        for (let i = 0; i < curTurnInfo.botsInfo.length; ++i) {
+            const prevBotInfo = prevTurnInfo.botsInfo[i];
+            const curBotInfo = curTurnInfo.botsInfo[i];
+            this.bots[curBotInfo.index].x = Lerp(prevBotInfo.x, curBotInfo.x, animFrameIndex * 1.0 / this.animFrameCount);
+            this.bots[curBotInfo.index].y = Lerp(prevBotInfo.y, curBotInfo.y, animFrameIndex * 1.0 / this.animFrameCount);
+            this.bots[curBotInfo.index].SetDir(curBotInfo.dir);
         }
     }
 
-    UpdateSnowballs() {
-        const turn = this.replay.turns[this.turn];
+    UpdateSnowballs(animFrameIndex) {
+        const prevTurnInfo = this.replay.turns[Math.max(this.turn - 1, 0)];
+        const curTurnInfo = this.replay.turns[this.turn];
 
-        for (let i = 0; i < turn.snowballs.length; ++i) {
-            const snowballInfo = turn.snowballs[i];
-            if (this.snowballs[snowballInfo.id] === null || this.snowballs[snowballInfo.id] === undefined) {
-                this.snowballs[snowballInfo.id] = new Snowball(snowballInfo.x, snowballInfo.y, snowballInfo.dir, snowballInfo.value);
+        const keysForDelete = Object.keys(this.snowballs);
+        for (let i = 0; i < prevTurnInfo.snowballs.length; ++i) {
+            const id = prevTurnInfo.snowballs[i].id;
+            keysForDelete.splice(keysForDelete.indexOf(id), 1);
+        }
+
+        for (let i = 0; i < keysForDelete.length; ++i)
+            this.snowballs[keysForDelete[i]] = null;
+
+        for (let i = 0; i < curTurnInfo.snowballs.length; ++i) {
+            let prevSnowballInfo = prevTurnInfo.snowballs[i];
+            let curSnowballInfo = curTurnInfo.snowballs[i];
+
+            if (prevSnowballInfo === undefined || prevSnowballInfo === undefined)
+                prevSnowballInfo = curSnowballInfo;
+
+            if (this.snowballs[curSnowballInfo.id] === null || this.snowballs[curSnowballInfo.id] === undefined) {
+                if (animFrameIndex * 1.0 / this.animFrameCount > 0.8) {
+                    this.snowballs[curSnowballInfo.id] = new Snowball(curSnowballInfo.x, curSnowballInfo.y, curSnowballInfo.dir, curSnowballInfo.value);
+                }
             } else {
-                const snowball = this.snowballs[snowballInfo.id];
-                snowball.x = snowballInfo.x;
-                snowball.y = snowballInfo.y;
-                snowball.dir = snowballInfo.dir;
-                snowball.SetSnowCount(snowballInfo.value);
+                const snowball = this.snowballs[curSnowballInfo.id];
+                snowball.x = Lerp(prevSnowballInfo.x, curSnowballInfo.x, animFrameIndex * 1.0 / this.animFrameCount);
+                snowball.y = Lerp(prevSnowballInfo.y, curSnowballInfo.y, animFrameIndex * 1.0 / this.animFrameCount);
+                snowball.dir = curSnowballInfo.dir;
+                snowball.SetSnowCount(AboveHalfAnim(prevSnowballInfo.value, curSnowballInfo.value, animFrameIndex * 1.0 / this.animFrameCount));
             }
         }
     }
 
     Render(canvas, tileSize) {
-        const turn = this.replay.turns[this.turn];
-
-        this.SetSnowLevel();
-
         const map = this.staticLevel;
         canvas.width = map[0].length * tileSize;
         canvas.height = map.length * tileSize;
         const context = canvas.getContext('2d');
 
-        for (let h = 0; h < map.length; ++h) {
-            for (let w = 0; w < map[h].length; ++w) {
-                context.drawImage(map[h][w].texture, w * tileSize, h * tileSize, tileSize, tileSize);
-            }
-        }
-
+        this.DrawMap(context, tileSize);
         this.DrawBases(context, tileSize);
+        this.DrawSnowballs(context, tileSize);
+        this.DrawBots(context, tileSize);
+    }
 
-        for (let i = 0; i < turn.snowballs.length; ++i) {
-            const snowballInfo = turn.snowballs[i];
-            const snowball = this.snowballs[snowballInfo.id];
-            context.drawImage(snowball.texture, snowball.x * tileSize, snowball.y * tileSize, tileSize, tileSize);
-        }
-
+    DrawBots(context, tileSize) {
         for (let i = 0; i < this.bots.length; ++i) {
             const bot = this.bots[i];
             context.drawImage(bot.texture, bot.x * tileSize, bot.y * tileSize, tileSize, tileSize);
@@ -97,8 +130,27 @@ class ReplayRenderer {
         }
     }
 
+    DrawSnowballs(context, tileSize) {
+        const keys = Object.keys(this.snowballs);
+        for (let i = 0; i < keys.length; ++i) {
+            const snowball = this.snowballs[keys[i]];
+            if (snowball === null)
+                continue;
+            context.drawImage(snowball.texture, snowball.x * tileSize, snowball.y * tileSize, tileSize, tileSize);
+        };
+    }
+
+    DrawMap(context, tileSize) {
+        const map = this.staticLevel;
+        for (let h = 0; h < map.length; ++h) {
+            for (let w = 0; w < map[h].length; ++w) {
+                context.drawImage(map[h][w].texture, w * tileSize, h * tileSize, tileSize, tileSize);
+            }
+        }
+    }
+
     DrawBases(context, tileSize) {
-        for (let i = 0; i < this.replay.mapStartState.bases.length; ++i) {
+        for (let i = 0; i < this.bots.length; ++i) {
             const base = this.replay.mapStartState.bases[i];
             const topLeft = base.topLeft;
             const bottomRight = base.bottomRight;
@@ -110,15 +162,15 @@ class ReplayRenderer {
         }
     }
 
-    NextTurn() {
-        this.SetTurn(this.turn + 1);
+    NextTurn(updateRender, animFrameTime) {
+        this.SetTurn(this.turn + 1, updateRender, animFrameTime);
     }
 
-    PrevTurn() {
-        this.SetTurn(this.turn - 1);
+    PrevTurn(updateRender, animFrameTime) {
+        this.SetTurn(this.turn - 1, updateRender, animFrameTime);
     }
 
-    SetTurn(index) {
+    SetTurn(index, updateRender, animFrameTime) {
         if (index < 0) {
             alert("Turn index < 0");
             return;
@@ -130,9 +182,22 @@ class ReplayRenderer {
         }
 
         this.turn = index;
-        this.SetSnowLevel();
-        this.UpdateBotsPositions();
-        this.UpdateSnowballs();
+        this.AnimIter(0, updateRender, animFrameTime, this.turn);
+    }
+
+    AnimIter(animIndex = 0, updateRender, animFrameTime, turn) {
+        if (this.turn !== turn)
+            return;
+
+        this.SetSnowLevel(animIndex);
+        this.UpdateBotsPositions(animIndex);
+        this.UpdateSnowballs(animIndex);
+
+        if (updateRender !== null && updateRender !== undefined)
+            updateRender();
+
+        if (animIndex + 1 <= this.animFrameCount)
+            setTimeout(() => { this.AnimIter(animIndex + 1, updateRender, animFrameTime, turn) }, animFrameTime);
     }
 
     CalcScores() {

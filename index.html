@@ -133,9 +133,6 @@
                                     <label for="botTurnTime">Bot turn time ms</label>
                                     <br>
                                     <button onclick="AutoStep()">Auto step</button>
-                                    <input type="range" min="10" max="1000" step="1" id="turnTime" oninput="UpdateOutputForInputRange('turnTimeOutput',this.value)">
-                                    <output id="turnTimeOutput">0</output>
-                                    <label for="turnTime">Turns period ms</label>
                                 </div>
 
                                 <div name="renderSettingsDiv" id="renderSettingsDiv">
@@ -208,23 +205,22 @@
 
         function PrevReplayTurn() {
             StopReplayAutoStep();
-            replayRenderer.PrevTurn();
-            UpdateReplayRender();
+            replayRenderer.PrevTurn(UpdateReplayRender, document.getElementById("replayTurnTime").value);
         }
 
         function AutoPlayReplay() {
+            const replayTurnTime = document.getElementById("replayTurnTime").value;
             if (startedReplayAutoStep) {
                 clearInterval(replayTimerId);
             } else {
                 replayTimerId = setInterval(function() {
                         if (replayRenderer.turn + 1 < replayRenderer.replay.turns.length) {
-                            replayRenderer.NextTurn();
-                            UpdateReplayRender();
+                            replayRenderer.NextTurn(UpdateReplayRender, replayTurnTime);
                         } else {
                             StopReplayAutoStep();
                         }
                     },
-                    document.getElementById("replayTurnTime").value);
+                    replayTurnTime * (animCount + 1) + 10);
             }
             startedReplayAutoStep = !startedReplayAutoStep;
         }
@@ -238,8 +234,7 @@
 
         function NextReplayTurn() {
             StopReplayAutoStep();
-            replayRenderer.NextTurn();
-            UpdateReplayRender();
+            replayRenderer.NextTurn(UpdateReplayRender, document.getElementById("replayTurnTime").value);
         }
 
         function UpdateOutputForInputRange(name, value) {
@@ -576,26 +571,14 @@
 
         function StopGameAutoStep() {
             if (startedGameAutoStep) {
-                clearInterval(gameTimerId);
                 startedGameAutoStep = false;
             }
         }
 
         function AutoStep() {
-            if (startedGameAutoStep) {
-                clearInterval(gameTimerId);
-            } else {
-                gameTimerId = setInterval(function() {
-                        if (gameScene.mapInfo.turns > 0) {
-                            NextStepWithTimer();
-                        } else {
-                            StopGameAutoStep();
-                        }
-                    },
-                    document.getElementById("turnTime").value,
-                    document.getElementById("botTurnTime").value);
-            }
             startedGameAutoStep = !startedGameAutoStep;
+            if (startedGameAutoStep)
+                ScheduleGameStep(true);
         }
 
         function NextStep() {
@@ -604,8 +587,26 @@
             UpdateGameRender();
         }
 
-        function NextStepWithTimer() {
-            gameScene.NextStepWithTimer(document.getElementById("botTurnTime").value, UpdateGameRender);
+        function NextStepWithTimer(isAuto = false) {
+            gameScene.NextStepWithTimer(document.getElementById("botTurnTime").value, () => {
+                UpdateGameRenderWithStep(isAuto);
+            });
+        }
+
+        function UpdateGameRenderWithStep(isAuto = false) {
+            UpdateGameRender();
+            if (isAuto && startedGameAutoStep)
+                ScheduleGameStep(isAuto);
+        }
+
+        function ScheduleGameStep(isAuto) {
+            setTimeout(function() {
+                if (gameScene.mapInfo.turns > 0) {
+                    NextStepWithTimer(isAuto);
+                } else {
+                    StopGameAutoStep();
+                }
+            }, 0);
         }
 
         function ResetMapUI() {
@@ -649,7 +650,7 @@
                 return null;
 
             let replayText = GetObjectFromStorageByName(select.options[select.selectedIndex].text);
-            replayRenderer = new ReplayRenderer(JSON.parse(replayText));
+            replayRenderer = new ReplayRenderer(JSON.parse(replayText), animCount, UpdateReplayRender);
             AutoSizeReplayRender();
         }
 
@@ -748,6 +749,9 @@
                     ul.removeChild(ul.firstChild);
                 }
 
+                if (attempts === null || attempts === undefined)
+                    return;
+
                 for (let i = 0; i < attempts.length; ++i) {
                     let li = document.createElement("li");
 
@@ -827,7 +831,6 @@
 
 
         function UpdateRangeInputs() {
-            document.getElementById("turnTime").oninput();
             document.getElementById("botTurnTime").oninput();
             document.getElementById("tileSize").oninput();
             document.getElementById("replayTileSize").oninput();
@@ -927,10 +930,11 @@
         let replayRenderer = null;
 
         let startedGameAutoStep = false;
-        let gameTimerId = null;
 
         let startedReplayAutoStep = false;
         let replayTimerId = null;
+
+        const animCount = 10;
 
         const colors = [
             "white",
