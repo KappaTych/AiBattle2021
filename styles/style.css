@@ -5,13 +5,16 @@ body {
     background-color: #f0f5ff;
 }
 
+.ui {
+    padding: 5px;
+}
+
 .scroll {
     width: 100%;
     height: 100%;
     background: rgb(233, 248, 255);
     overflow-x: auto;
     overflow-y: auto;
-    padding: 5px;
 }
 
 .scroll ul {
