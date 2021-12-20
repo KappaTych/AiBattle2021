@@ -506,7 +506,7 @@ class Scene {
 
     GetSnowLevelMap() {
         const snowLevelMap = [];
-        for (let h = 0; h < this.mapInfo.width; ++h) {
+        for (let h = 0; h < this.mapInfo.height; ++h) {
             snowLevelMap[h] = [];
             for (let w = 0; w < this.mapInfo.width; ++w) {
                 if (this.mapInfo.map[h][w].constructor.name === "Field") {
