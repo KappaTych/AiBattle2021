@@ -136,6 +136,8 @@ namespace AiBattle.TestServer
                     }
                 }
 
+                _engine.Evaluate($"scene.AddTurnToLogs()");
+
                 var turns = (int)scene.GetProperty("startTurnsCount");
 
                 for (var turn = 1; turn <= turns; ++turn)
