@@ -7,3 +7,5 @@
 scripts/lib.js
 bin
 obj
+scripts/ClearScriptTestServer.csproj.user
+scripts/Properties/launchSettings.json

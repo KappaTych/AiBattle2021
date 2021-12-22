@@ -1,0 +1,8 @@
+{
+    "MapPath": "../../../../maps/simple_map.json",
+    "OutPath": "./result.txt",
+    "IsRandomSpawn": false,
+    "InitTimeout": 100,
+    "TurnTimeout": 100,
+    "IsLogging": true
+}
