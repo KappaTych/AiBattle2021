@@ -18,7 +18,7 @@ class FakeController {
         this.dirs = dirs;
         this.index = 0;
     }
-    Init() { }
+    Init() {}
     GetDirection() {
         this.index += 1;
         return this.dirs[this.index]
@@ -70,14 +70,14 @@ class ReplayRenderer {
         const bots = [];
         for (let i = 0; i < replay.startBotsInfo.length; ++i) {
             const botInfo = replay.startBotsInfo[i];
-            const controller = {controllerObj:new FakeController(dirs[i]), text: FakeController.toString()};
+            const controller = { controllerObj: new FakeController(dirs[i]), text: FakeController.toString() };
             bots[botInfo.index] = new Bot(botInfo.x, botInfo.y, botInfo.dir, controller, botInfo.name, botInfo.color);
         }
 
         const scene = new Scene(SafeMapInfo.ToMapInfo(replay.mapStartState), bots, false, 5, null, false, false);
         scene.AddTurnToLogs();
 
-        while (scene.mapInfo.turns > 0)
+        for (let i = 0; i < replay.turns.length - 1; ++i)
             scene.NextStep();
         return JSON.parse(scene.GetLogs());
     }
@@ -141,7 +141,7 @@ class ReplayRenderer {
                 prevSnowballInfo = curSnowballInfo;
 
             if (this.snowballs[curSnowballInfo.id] === null || this.snowballs[curSnowballInfo.id] === undefined) {
-                if (animFrameIndex * 1.0 / this.animFrameCount > 0.8) {
+                if (animFrameIndex * 1.0 / this.animFrameCount > 0.8 || prevSnowballInfo.id === curSnowballInfo.id) {
                     this.snowballs[curSnowballInfo.id] = new Snowball(curSnowballInfo.x, curSnowballInfo.y, curSnowballInfo.dir, curSnowballInfo.value);
                 }
             } else {

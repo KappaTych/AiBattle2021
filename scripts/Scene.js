@@ -185,7 +185,7 @@ class MapInfo {
 
         for (let i = 0; i < obj.spawns.length; ++i) {
             if (!(ValidateNotNegativeNumber(obj.spawns[i].x, "spawn.x") &&
-                ValidateNotNegativeNumber(obj.spawns[i].y, "spawn.y"))) {
+                    ValidateNotNegativeNumber(obj.spawns[i].y, "spawn.y"))) {
                 return false;
             }
 
@@ -204,7 +204,7 @@ class MapInfo {
             const bottomRight = obj.bases[i].bottomRight;
 
             if (!(ValidateNotNegativeNumber(topLeft.x, "topLeft.x") && ValidateNotNegativeNumber(topLeft.y, "topLeft.y") &&
-                ValidateNotNegativeNumber(bottomRight.x, "bottomRight.x") && ValidateNotNegativeNumber(bottomRight.y, "bottomRight.y"))) {
+                    ValidateNotNegativeNumber(bottomRight.x, "bottomRight.x") && ValidateNotNegativeNumber(bottomRight.y, "bottomRight.y"))) {
                 return false;
             }
 
@@ -269,8 +269,9 @@ class MapInfo {
     }
 
     static ValidateSnowIncreaseValue(obj) {
-        if (ValidateNotNegativeNumber(obj.snowIncreaseValue, "obj.snowIncreaseValue"))
-            return true;
+        if (typeof obj.snowIncreaseValue === "number") {
+            return ValidateNotNegativeNumber(obj.snowIncreaseValue, "obj.snowIncreaseValue");
+        }
 
         if (typeof obj.snowIncreaseValue === "object") {
             const width = obj.width * 1;
@@ -719,7 +720,7 @@ class Scene {
             return this.CalcScores();
 
         for (let i = 0; i < this.bots.length; ++i) {
-            const dir = this.bots[i].controller.controllerObj.GetDirection(this.PrepareDataForController(i));
+            let dir = this.bots[i].controller.controllerObj.GetDirection(this.PrepareDataForController(i));
             if (!(dir === 0 || dir === 1 || dir === 2 || dir === 3 || dir === 4)) {
                 console.warn("bad direction format " + this.bots[i].name);
                 dir = 4;
