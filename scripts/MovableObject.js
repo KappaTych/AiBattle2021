@@ -32,7 +32,7 @@ class ControlledObject extends MovableObject {
 class Bot extends ControlledObject {
     constructor(x, y, dir, controller, name, color) {
         super(x, y, dir, ResourceLoader.LoadPng("resources/textures/bots/" + color + "Bot/" + "bot_" + 2 + "_" + 0 + ".png "), controller, name);
-        this.lastDir = 2;
+        this.lastDir = dir;
         this.texturesForDirAnim = [];
         this.color = color;
         for (let i = 0; i < 4; ++i) {

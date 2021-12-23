@@ -125,7 +125,9 @@ h1 {
     display: block;
 }
 
-button, select, input {
+button,
+select,
+input {
     background-color: #a0e0ff;
     border-radius: 5px;
     padding: 5px;
@@ -140,5 +142,9 @@ ul#botsList li div * {
 }
 
 ul#botsList li div label {
+    font-weight: bold;
+}
+
+ul#replayScores li label {
     font-weight: bold;
 }

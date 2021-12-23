@@ -571,8 +571,14 @@
             }
 
             for (let i = 0; i < scores.length; ++i) {
-                let li = document.createElement("li");
-                li.appendChild(document.createTextNode(scores[i].botName + ":" + scores[i].value));
+                const li = document.createElement("li");
+                const colorDiv = document.createElement("div");
+                colorDiv.setAttribute("style", "display:inline-block;width:20px; height:20px;");
+                colorDiv.style.backgroundColor = scores[i].botColor;
+                const label = document.createElement("label");
+                label.innerHTML = scores[i].botName + ":" + scores[i].value;
+                li.appendChild(colorDiv);
+                li.appendChild(label);
                 ul.appendChild(li);
             }
         }
@@ -686,6 +692,10 @@
                 let botInfoDiv = document.createElement("div");
                 botInfoDiv.id = botName + "InfoDiv";
 
+                const colorDiv = document.createElement("div");
+                colorDiv.setAttribute("style", "display:inline-block;width:20px; height:20px;");
+                colorDiv.style.backgroundColor = colors[i];
+
                 let selectList = document.createElement("select");
                 selectList.name = "type";
                 UpdateSelect(selectList, [...["none"], ...GetControllersNames()]);
@@ -709,6 +719,7 @@
                 scoreLabel.innerHTML = 0;
                 scoreLabel.name = "score";
 
+                botInfoDiv.appendChild(colorDiv);
                 botInfoDiv.appendChild(input);
                 botInfoDiv.appendChild(selectList);
                 botInfoDiv.appendChild(scoreLabel)

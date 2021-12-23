@@ -249,7 +249,7 @@ class ReplayRenderer {
         const scores = [];
         for (let i = 0; i < this.bots.length; ++i) {
             const base = this.replay.mapStartState.bases[i];
-            scores[i] = { value: 0, botName: this.bots[i].name };
+            scores[i] = { value: 0, botName: this.bots[i].name, botColor: this.bots[i].color };
             for (let j = 0; j < snowballs.length; ++j) {
                 const snowball = snowballs[j];
                 if (base.topLeft.x <= snowball.x && snowball.x <= base.bottomRight.x &&

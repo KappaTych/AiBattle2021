@@ -630,7 +630,7 @@ class Scene {
     CalcScores() {
         const scores = [];
         for (let i = 0; i < this.bots.length; ++i) {
-            scores[i] = { value: 0, botName: this.bots[i].name };
+            scores[i] = { value: 0, botName: this.bots[i].name, botColor: this.bots[i].color };
             for (let h = this.mapInfo.bases[i].topLeft.y; h <= this.mapInfo.bases[i].bottomRight.y; ++h) {
                 for (let w = this.mapInfo.bases[i].topLeft.x; w <= this.mapInfo.bases[i].bottomRight.x; ++w) {
                     if (this.dynamicLayer[h][w] !== null &&
