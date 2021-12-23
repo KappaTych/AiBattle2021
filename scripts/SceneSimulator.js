@@ -38,11 +38,11 @@ function InitScene() {
         bots.push(new Bot(0, 0, 0, controllers[i], botNames[i], botColors[i]));
     }
 
-    let isRandomSpawn = $isRandomSpawn;
     let timeout = $timeout;
     let onComplete = $onComplete;
+    let isShortReplay = $isShortReplay;
 
-    return new Scene(mapInfo, bots, isRandomSpawn, false, timeout, onComplete, false);
+    return new Scene(mapInfo, bots, false, timeout, onComplete, false, isShortReplay);
 }
 
 let scene = InitScene();

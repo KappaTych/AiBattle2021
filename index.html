@@ -540,11 +540,11 @@
                 bots.push(new Bot(0, 0, 0, controller, data.botName.value, colors[i]));
             }
 
-            gameScene = new Scene(gameScene.mapInfo, bots, false, true, 100,
+            gameScene = new Scene(gameScene.mapInfo, bots, true, 100,
                 //Hack when bots length = 0, call Update after scene assign 
                 function() {
                     setTimeout(UpdateGameRender, 0);
-                });
+                }, true, true);
         }
 
         function UpdateGameRender() {
@@ -945,21 +945,20 @@
         const animCount = 10;
 
         const colors = [
-            "white",
             "red",
             "orange",
             "yellow",
             "green",
             "blue",
             "indigo",
-            "violet"
+            "violet",
+            "white",
         ];
 
         //preload image
         new Tree();
         new Wall();
         new Field();
-        new Bot();
         new Snowball();
         for (let index in colors) {
             new Bot(0, 0, 0, null, colors[index], colors[index]);

@@ -19,10 +19,10 @@ namespace AiBattle.TestServer
 
     public record Config(string MapPath,
                                string OutPath,
-                               bool IsRandomSpawn,
                                int InitTimeout,
                                int TurnTimeout,
-                               bool IsLogging);
+                               bool IsLogging,
+                               bool IsShortReplay);
 
     public record SceneInitParams(Config Config, string[] BotPaths);
 
@@ -92,9 +92,8 @@ namespace AiBattle.TestServer
                                   controllersTexts.ToString(),
                                   names.ToString(),
                                   colors.ToString(),
-                                  sceneInitParams.Config.IsRandomSpawn.ToString().ToLower(),
                                   sceneInitParams.Config.InitTimeout,
-                                  "null");
+                                  "null", sceneInitParams.Config.IsShortReplay);
 
             if (_isLogging)
                 _consoleLogs!.WriteToLogs(_script);
@@ -236,17 +235,17 @@ namespace AiBattle.TestServer
                                   string controllersTexts,
                                   string botNames,
                                   string botColors,
-                                  string isRandomSpawn,
                                   int timeout,
-                                  string onComplete)
+                                  string onComplete,
+                                  bool isShortReplay)
         => File.ReadAllText("SceneSimulator.js")
                .Replace("$mapInfo", mapInfo)
                .Replace("$controllerTexts", controllersTexts.Replace("\n", "").Replace("\r", ""))
                .Replace("$botNames", botNames)
                .Replace("$botColors", botColors)
-               .Replace("$isRandomSpawn", isRandomSpawn)
                .Replace("$timeout", timeout.ToString())
-               .Replace("$onComplete", onComplete);
+               .Replace("$onComplete", onComplete)
+               .Replace("$isShortReplay", isShortReplay.ToString().ToLower());
 
         private void BotInit(int botIndex, out ScriptObject? bot)
         {

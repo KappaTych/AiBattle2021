@@ -13,11 +13,25 @@ function AboveHalfAnim(start, end, part) {
     return part >= 0.5 ? end : start;
 }
 
+class FakeController {
+    constructor(dirs) {
+        this.dirs = dirs;
+        this.index = 0;
+    }
+    Init() { }
+    GetDirection() {
+        this.index += 1;
+        return this.dirs[this.index]
+    }
+}
+
 class ReplayRenderer {
     constructor(replay, animFrameCount, updateRender) {
+        this.replay = replay.isShort ? this.RestoreReplay(replay) : replay;
+
         this.animFrameCount = animFrameCount;
         this.turn = 0;
-        this.replay = replay;
+
         this.staticLevel = [];
         for (let h = 0; h < replay.mapStartState.height; ++h) {
             this.staticLevel[h] = [];
@@ -40,6 +54,32 @@ class ReplayRenderer {
         this.snowballs = {};
 
         setTimeout(() => this.SetTurn(0, updateRender, 1), 0);
+    }
+
+    RestoreReplay(replay) {
+        const dirs = [];
+        for (let i = 0; i < replay.startBotsInfo.length; ++i)
+            dirs[i] = [];
+
+        for (let i = 0; i < replay.turns.length; ++i) {
+            const botsInfo = replay.turns[i].botsInfo;
+            for (let j = 0; j < botsInfo.length; ++j)
+                dirs[j].push(botsInfo[j].dir);
+        }
+
+        const bots = [];
+        for (let i = 0; i < replay.startBotsInfo.length; ++i) {
+            const botInfo = replay.startBotsInfo[i];
+            const controller = {controllerObj:new FakeController(dirs[i]), text: FakeController.toString()};
+            bots[botInfo.index] = new Bot(botInfo.x, botInfo.y, botInfo.dir, controller, botInfo.name, botInfo.color);
+        }
+
+        const scene = new Scene(SafeMapInfo.ToMapInfo(replay.mapStartState), bots, false, 5, null, false, false);
+        scene.AddTurnToLogs();
+
+        while (scene.mapInfo.turns > 0)
+            scene.NextStep();
+        return JSON.parse(scene.GetLogs());
     }
 
     SetSnowLevel(animFrameIndex) {
@@ -72,7 +112,11 @@ class ReplayRenderer {
             const curBotInfo = curTurnInfo.botsInfo[i];
             this.bots[curBotInfo.index].x = Lerp(prevBotInfo.x, curBotInfo.x, animFrameIndex * 1.0 / this.animFrameCount);
             this.bots[curBotInfo.index].y = Lerp(prevBotInfo.y, curBotInfo.y, animFrameIndex * 1.0 / this.animFrameCount);
-            this.bots[curBotInfo.index].SetDir(curBotInfo.dir);
+            const animIndex = animFrameIndex === 0 || animFrameIndex === this.animFrameCount ||
+                (prevBotInfo.x === curBotInfo.x && prevBotInfo.y === curBotInfo.y) ?
+                0 :
+                (animFrameIndex % 4 > 1) ? 2 : 1;
+            this.bots[curBotInfo.index].SetDirAndAnim(curBotInfo.dir, animIndex);
         }
     }
 

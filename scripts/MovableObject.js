@@ -1,17 +1,23 @@
 class MovableObject extends VisibleGameObject {
-    constructor(x, y, dir, texture) {
+    constructor(x, y, dir, texture, anim) {
         super(texture);
         this.dir = dir;
+        this.anim = anim;
         this.x = x;
         this.y = y;
     }
 
-    SetDir(dir) {
+    SetDirAndAnim(dir, anim = 0) {
         this.dir = dir;
+        this.anim = anim;
     }
 
     GetDir() {
         return this.dir;
+    }
+
+    GetAnim() {
+        return this.anim;
     }
 }
 
@@ -21,36 +27,40 @@ class ControlledObject extends MovableObject {
         this.controller = controller;
         this.name = name;
     }
-
-    GetDirection(mapInfo) {
-        return controller.controllerObj.GetDirection(mapInf);
-    }
 }
 
 class Bot extends ControlledObject {
-    constructor(x, y, dir, controller, name, color = "white") {
-        super(x, y, dir, ResourceLoader.LoadPng("resources/textures/" + color + "Bot/" + "bot0.png "), controller, name);
-        this.texturesForDir = [];
+    constructor(x, y, dir, controller, name, color) {
+        super(x, y, dir, ResourceLoader.LoadPng("resources/textures/bots/" + color + "Bot/" + "bot_" + 2 + "_" + 0 + ".png "), controller, name);
+        this.texturesForDirAnim = [];
         this.color = color;
-        for (let i = 0; i < 4; ++i)
-            this.texturesForDir.push(ResourceLoader.LoadPng("resources/textures/" + color + "Bot/" + "bot" + i + ".png "));
+        for (let i = 0; i < 4; ++i) {
+            this.texturesForDirAnim[i] = [];
+            for (let j = 0; j < 3; ++j) {
+                this.texturesForDirAnim[i].push(ResourceLoader.LoadPng("resources/textures/bots/" + color + "Bot/" + "bot_" + i + "_" + j + ".png "));
+            }
+        }
     }
 
-    SetDir(dir) {
-        super.SetDir(dir);
-        this.texture = this.texturesForDir[this.dir];
+    SetDirAndAnim(dir, anim = 0) {
+        if (dir === 4) {
+            dir = this.GetDir();
+            anim = 0;
+        }
+        super.SetDirAndAnim(dir, anim);
+        this.texture = this.texturesForDirAnim[this.dir][this.anim];
     }
 }
 
 class Snowball extends MovableObject {
     constructor(x, y, dir, currentSnowCount = 1, maxSnowCount = 100) {
-        super(x, y, dir, ResourceLoader.LoadPng("resources/textures/snowball0.png"));
+        super(x, y, dir, ResourceLoader.LoadPng("resources/textures/snowballs/snowball0.png"));
 
         this.currentSnowCount = currentSnowCount;
         this.maxSnowCount = maxSnowCount;
         this.texturesForSnowBall = []
         for (let i = 0; i <= 3; ++i)
-            this.texturesForSnowBall.push(ResourceLoader.LoadPng("resources/textures/snowball" + i + ".png"));
+            this.texturesForSnowBall.push(ResourceLoader.LoadPng("resources/textures/snowballs/snowball" + i + ".png"));
         this.SetSnowCount(this.currentSnowCount);
     }
 

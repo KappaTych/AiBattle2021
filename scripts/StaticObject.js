@@ -19,12 +19,12 @@ class Tree extends StaticObject {
 
 class Field extends StaticObject {
     constructor(currentSnowCount = 0, maxSnowCount = 20) {
-        super(ResourceLoader.LoadPng("resources/textures/field0.png"), ".");
+        super(ResourceLoader.LoadPng("resources/textures/fields/field0.png"), ".");
         this.currentSnowCount = currentSnowCount;
         this.maxSnowCount = maxSnowCount;
         this.texturesForSnow = []
         for (let i = 0; i <= 4; ++i)
-            this.texturesForSnow.push(ResourceLoader.LoadPng("resources/textures/field" + i + ".png"));
+            this.texturesForSnow.push(ResourceLoader.LoadPng("resources/textures/fields/field" + i + ".png"));
     }
 
     SetSnowCount(count) {
