@@ -47,10 +47,9 @@
                                     <button onclick="AddController()">Load controller</button>
                                     <button onclick="ClearControllers()">Clear controllers</button>
                                 </div>
-                                <div>
-                                    <button onclick="UpdateAllAttemptsListsAndUls()">Update attempts</button>
-                                    <br>
+                                <div style="padding-top: 20px;">
                                     <label>Attempts</label>
+                                    <button style="padding: 5px 5px;" onclick="UpdateAllAttemptsListsAndUls()">Update attempts</button>
                                     <br>
                                     <ul id="attemptsUl"></ul>
                                 </div>
@@ -76,15 +75,19 @@
                             <div class="ui scroll">
                                 <div name="mapLoader">
                                     <label>Loaded maps</label>
-                                    <ul name="mapsUl" id="mapsUl"></ul>
+                                    <div class="fixedScroll">
+                                        <ul name="mapsUl" id="mapsUl"></ul>
+                                    </div>
                                     <input type="file" name="mapFile" id="mapFile">
                                     <button onclick="AddMap()">Load map</button>
                                     <button onclick="ClearMaps()">clear maps</button>
                                     <br>
-                                    <button id="updateMapPreview" onclick="UpdateMapPreview()">Update map preview</button>
-                                    <br>
-                                    <div class="scroll">
-                                        <canvas id="mapPreview" width="0" height="0"></canvas>
+                                    <div style="padding-top: 20px;">
+                                        <button id="updateMapPreview" onclick="UpdateMapPreview()">Update map preview</button>
+                                        <br>
+                                        <div style="padding-top: 5px;" class="fixedScroll">
+                                            <canvas id="mapPreview" width="0" height="0"></canvas>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -124,25 +127,24 @@
                                     <button onclick="StartGame()">Start Game</button>
                                 </div>
 
-                                <div name="gameTurnsControllerDiv" id="gameTurnsControllerDiv">
+                                <div style="padding-top: 10px;" name="gameTurnsControllerDiv" id="gameTurnsControllerDiv">
                                     <button onclick="NextStep()">Next step</button>
                                     <br>
+                                    <button onclick="AutoStep()">Auto step</button>
                                     <button onclick="NextStepWithTimer()">Next step with timer</button>
                                     <input type="range" min="10" max="1000" step="1" id="botTurnTime" oninput="UpdateOutputForInputRange('botTurnTimeOutput',this.value)">
                                     <output id="botTurnTimeOutput">0</output>
                                     <label for="botTurnTime">Bot turn time ms</label>
-                                    <br>
-                                    <button onclick="AutoStep()">Auto step</button>
+
                                 </div>
 
                                 <div name="renderSettingsDiv" id="renderSettingsDiv">
-                                    <button onclick="UpdateGameRender()">Update render</button>
                                     <button onclick="AutoSizeGameRender()">Autosize render</button>
-                                    <input type="range" min="20" max="500" step="1" id="tileSize" oninput="UpdateOutputForInputRange('tileSizeOutput',this.value)">
+                                    <input type="range" min="20" max="200" step="1" id="tileSize" oninput="UpdateOutputForInputRange('tileSizeOutput',this.value), UpdateGameRender();">
                                     <output id="tileSizeOutput">0</output>
                                     <label for="tileSize">Tile size</label>
                                 </div>
-                                <div>
+                                <div style="padding-top: 10px;">
                                     <label>Replay name</label>
                                     <input id="replayName">
                                     <button onclick="SaveReplay()">Save replay</button>
@@ -172,9 +174,8 @@
                                 </div>
 
                                 <div>
-                                    <button onclick="UpdateReplayRender()">Update replay render</button>
                                     <button onclick="AutoSizeReplayRender()">Autosize replay render</button>
-                                    <input type="range" min="20" max="500" step="1" id="replayTileSize" oninput="UpdateOutputForInputRange('replayTileSizeOutput',this.value)">
+                                    <input type="range" min="20" max="200" step="1" id="replayTileSize" oninput="UpdateOutputForInputRange('replayTileSizeOutput',this.value); UpdateReplayRender();">
                                     <output id="replayTileSizeOutput">0</output>
                                     <label for="replayTileSize">Tile size</label>
                                 </div>
@@ -188,7 +189,7 @@
                                     <output id="replayTurnTimeOutput">0</output>
                                     <label for="replayTurnTime">Frame time</label>
                                 </div>
-                                <div>
+                                <div style="padding-top: 10px;">
                                     <label>Turn:</label>
                                     <label id="currentTurn">0</label>
                                     <ul id="replayScores"></ul>
@@ -548,6 +549,11 @@
         }
 
         function UpdateGameRender() {
+            if (gameScene === null || gameScene === undefined) {
+                console.warn("The games is not loaded.");
+                return;
+            }
+
             let x = document.getElementById("tileSize").value;
             let canvas = document.getElementById("game-canvas");
             gameScene.Render(canvas, x);
@@ -559,6 +565,11 @@
         }
 
         function UpdateReplayRender() {
+            if (replayRenderer === null || replayRenderer === undefined) {
+                console.warn("The replay is not loaded.");
+                return;
+            }
+
             let x = document.getElementById("replayTileSize").value;
             let canvas = document.getElementById("replay-canvas");
             replayRenderer.Render(canvas, x);
