@@ -893,15 +893,43 @@ GetController();`;
             });
         }
 
+        async function LoadSubAttempts(cid, sid, parent_id) {
+            const url = "https://imcs.dvfu.ru/cats/?f=console" + ";sid=" + sid + ";cid=" + cid + ";search=contest_id=this,parent_id=" + parent_id + ";json=1";
+            let response = await fetch(url, {
+                method: 'GET'
+            });
+            return await response.json();
+        }
+
+        async function GetInfoFromSubmite(cid, sid, rid) {
+            const url = "https://imcs.dvfu.ru/cats/?f=run_details" + ";sid=" + sid + ";cid=" + cid + ";rid=" + rid + ";json=1"
+            let response = await fetch(url, {
+                method: 'GET'
+            });
+            return await response.json();
+        }
+
         async function LoadReplayFromCats(sid, cid, rid, test_rank) {
             const url = "https://imcs.dvfu.ru/cats/?f=view_test_details" + ";sid=" + sid + ";cid=" + cid + ";json=1" + ";test_rank=" + test_rank +
                 ";rid=" + rid + ";";
             let response = await fetch(url, {
                 method: 'GET'
             });
+
+            let subAttempts = await LoadSubAttempts(cid, sid, rid);
+            const names = [];
+            for (let i = 0; i < subAttempts.length; ++i) {
+                const a = await GetInfoFromSubmite(cid, sid, subAttempts[i].id);
+                names.push(a.sources[0].orig_team);
+            }
+
             response.json().then((ans) => {
                 const name = rid + ":" + test_rank;
-                AddReplay(ans.output.data, name);
+                let rep = ans.output.data ? JSON.parse(ans.output.data) : JSON.parse(ans.input.data);
+
+                for (let i = 0; i < names.length; ++i)
+                    rep.startBotsInfo[i].name = names[i].split(" ")[0];
+                AddReplay(JSON.stringify(rep), name);
                 UpdateAllReplayListsAndUls();
                 const list = document.getElementById("replayList");
                 for (var i = 0; i < list.options.length; ++i) {
