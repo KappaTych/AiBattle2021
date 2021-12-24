@@ -14,11 +14,15 @@
     ],
     "startSnowMap": 1,
     "snowIncreasePeriod": 1,
-    "snowIncreaseValue": 1,
+    "snowIncreaseValue": 10,
     "lastSnowIncreaseStep": 10,
     "spawns": [{
             "x": 1,
             "y": 1
+        },
+        {
+            "x": 1,
+            "y": 7
         },
         {
             "x": 7,
@@ -37,6 +41,16 @@
             "bottomRight": {
                 "x": 1,
                 "y": 1
+            }
+        },
+        {
+            "topLeft": {
+                "x": 1,
+                "y": 7
+            },
+            "bottomRight": {
+                "x": 1,
+                "y": 7
             }
         },
         {
