@@ -21,7 +21,7 @@
             <button class="tab-button active buttonMenu" style="border-top-left-radius: 10px;" data-id="controllerEditorTab">Controller editor</button>
             <button class="tab-button buttonMenu" data-id="mapEditorTab">Map editor</button>
             <button class="tab-button buttonMenu" data-id="gameTab">Game</button>
-            <button class="tab-button buttonMenu" style="border-top-right-radius: 10px;" data-id="replayTab">Replay</button>
+            <button class="tab-button buttonMenu" style="border-top-right-radius: 10px;" data-id="replayTab" id="replayTabButton">Replay</button>
         </div>
         <div class="contentWrapper">
             <div class="content active" id="controllerEditorTab">
@@ -859,8 +859,13 @@ GetController();`;
                     editButton.innerHTML = "&nbsp;";
                     editButton.title = "Edit";
                     editButton.onclick = async function() {
-                        const url = "https://imcs.dvfu.ru/cats/?f=download_source" + document.location.search.replace(/pid=\d+;/, '').replace("?", ";") + ";json=1;" +
-                            "rid=" + attempts[i].id + ";";
+                        const query = QueryParams();
+                        if (!(query.sid && query.cid)) {
+                            console.warn("Bad cats path");
+                            return;
+                        }
+                        const url = "https://imcs.dvfu.ru/cats/?f=download_source" + ";sid=" + query.sid + ";cid=" + query.cid + ";json=1" +
+                            ";rid=" + attempts[i].id + ";";
                         let response = await fetch(url, {
                             method: 'GET'
                         });
@@ -871,6 +876,12 @@ GetController();`;
                         })
                     }
 
+                    const query = QueryParams();
+                    if (!(query.sid && query.cid)) {
+                        console.warn("Bad cats path");
+                        return;
+                    }
+
                     let text = document.createElement("span");
                     text.classList = "text";
                     text.innerHTML = attempts[i].id + ":" + attempts[i].state_text;
@@ -879,6 +890,30 @@ GetController();`;
                     li.appendChild(text);
                     ul.appendChild(li);
                 }
+            });
+        }
+
+        async function LoadReplayFromCats(sid, cid, rid, test_rank) {
+            const url = "https://imcs.dvfu.ru/cats/?f=view_test_details" + ";sid=" + sid + ";cid=" + cid + ";json=1" + ";test_rank=" + test_rank +
+                ";rid=" + rid + ";";
+            let response = await fetch(url, {
+                method: 'GET'
+            });
+            response.json().then((ans) => {
+                const name = rid + ":" + test_rank;
+                AddReplay(ans.output.data, name);
+                UpdateAllReplayListsAndUls();
+                const list = document.getElementById("replayList");
+                for (var i = 0; i < list.options.length; ++i) {
+                    if (list.options[i].innerHTML === name) {
+                        list.selectedIndex = i;
+                        break;
+                    }
+                }
+                document.querySelector(".wrapper").onclick({
+                    target: document.getElementById("replayTabButton")
+                });
+                list.onchange();
             });
         }
 
@@ -978,11 +1013,23 @@ GetController();`;
                 });
         }
 
+        function QueryParams() {
+            var url = window.location.search;
+            var qs = url.substring(url.indexOf('?') + 1).split(';');
+            for (var i = 0, result = {}; i < qs.length; i++) {
+                qs[i] = qs[i].split('=');
+                result[qs[i][0]] = decodeURIComponent(qs[i][1]);
+            }
+            return result;
+        };
+
         async function PostCodeToCats() {
-            if (!/^\?cid=\d+;pid=\d+;sid=[A-Za-z0-9]+$/.test(document.location.search)) {
+            const query = QueryParams();
+            if (!(query.sid && query.cid)) {
                 console.warn("Bad cats path");
                 return;
             }
+
             try {
                 if (!ValidateControllerText(controllerEditor.getValue())) {
                     return;
@@ -999,7 +1046,7 @@ GetController();`;
             formData.append("source_text", controllerEditor.getValue());
             formData.append("submit", "1");
 
-            const url = 'https://imcs.dvfu.ru/cats/?f=problems' + document.location.search.replace(/pid=\d+;/, '').replace("?", ";") + ';json=1;';
+            const url = 'https://imcs.dvfu.ru/cats/?f=problems' + ";sid=" + query.sid + ";cid=" + query.cid + ';json=1;';
             let response = await fetch(url, {
                 method: 'POST',
                 body: formData
@@ -1009,11 +1056,13 @@ GetController();`;
         }
 
         async function LoadAttempts() {
-            if (!/^\?cid=\d+;pid=\d+;sid=[A-Za-z0-9]+$/.test(document.location.search)) {
+            const query = QueryParams();
+            if (!(query.sid && query.cid)) {
                 console.warn("Bad cats path");
                 return;
             }
-            const url = 'https://imcs.dvfu.ru/cats/?f=console' + document.location.search.replace(/pid=\d+;/, '').replace("?", ";") + ';search=account_id%3Dthis;json=1;';
+
+            const url = 'https://imcs.dvfu.ru/cats/?f=console' + ";sid=" + query.sid + ";cid=" + query.cid + ';search=account_id%3Dthis;json=1;';
             let response = await fetch(url, {
                 method: 'GET'
             });
@@ -1069,6 +1118,11 @@ GetController();`;
             UpdateAllReplayListsAndUls();
             UpdateRangeInputs();
             UpdateAllAttemptsListsAndUls();
+
+            const query = QueryParams();
+            if (window.location.href.includes("?f=replay") && query.sid && query.rid && query.cid && query.test_rank) {
+                LoadReplayFromCats(query.sid, query.cid, query.rid, query.test_rank);
+            }
         }
     </script>
 </body>
