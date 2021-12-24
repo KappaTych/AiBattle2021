@@ -32,6 +32,7 @@
                                 <div id="controllerEditorText" class="app_editor"></div>
                                 <div class="editorSaveLoad">
                                     <button onclick="PostCodeToCats().then((data) => {alert(data.message);UpdateAllAttemptsListsAndUls();});">Post code to CATS</button>
+                                    <button onclick="InitControllerEditorForNewText()">New</button>
                                     <button onclick="SaveController()">SaveAs</button>
                                     <button onclick="LoadAndSetController()">Load</button>
                                     <input id="controllerFileName">
@@ -65,6 +66,7 @@
                             <div id="editor2_wrapper" class="app_editor_wrapper">
                                 <div id="mapEditorText" class="app_editor"></div>
                                 <div class="editorSaveLoad">
+                                    <button onclick="InitMapEditorForNewText()">New</button>
                                     <button onclick="SaveMap()">Save As</button>
                                     <button onclick="LoadAndSetMap()">Load</button>
                                     <input id="mapFileName">
@@ -203,6 +205,73 @@
     </div>
 
     <script>
+        const newMapDefText = `{
+    "width": 3,
+    "height": 3,
+    "map": [
+        ["*", "*", "*"],
+        ["*", ".", "#"],
+        ["#", "#", "#"]
+    ],
+    "startSnowMap": 1,
+    "snowIncreasePeriod": 1,
+    "snowIncreaseValue": 10,
+    "lastSnowIncreaseStep": 10,
+    "spawns": [{
+            "x": 1,
+            "y": 1
+        }
+    ],
+    "bases": [{
+            "topLeft": {
+                "x": 1,
+                "y": 1
+            },
+            "bottomRight": {
+                "x": 1,
+                "y": 1
+            }
+        }
+    ],
+    "turns": 1
+}`;
+        const newControllerDefText = `function GetController() {
+    return {
+        Init: function(mapInfo) {
+            this.mapInfo = mapInfo;
+        },
+        //0 - up, 1 - right, 2 - bottom, 3 - left, 4 - idle 
+        GetDirection: function(levelInfo) {
+            let dir = 4;
+            return dir;
+        },
+    };
+}
+
+GetController();`;
+
+        function InitControllerEditorForNewText() {
+            const names = GetControllersNames();
+            let index = 0
+            while (names.indexOf("newController" + index + ".js") >= 0)
+                index++;
+            const name = "newController" + index + ".js"
+            AddControllerToPool(newControllerDefText, name);
+            UpdateAllControllerListsAndUls();
+            SetControllerToEditor(name);
+        }
+
+        function InitMapEditorForNewText() {
+            const names = GetMapsNames();
+            let index = 0
+            while (names.indexOf("newMap" + index + ".json") >= 0)
+                index++;
+            const name = "newMap" + index + ".json";
+            AddMapToPool(newMapDefText, name);
+            UpdateAllMapListsAndUls();
+            SetMapToEditor(name);
+        }
+
         function LoadReplay() {
             AddNewObjectToStorage("replayFile", replaysPoolName, UpdateAllReplayListsAndUls, () => true);
         }
