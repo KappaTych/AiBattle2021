@@ -45,8 +45,9 @@ function InitScene() {
     let timeout = $timeout;
     let onComplete = $onComplete;
     let isShortReplay = $isShortReplay;
+    let isStoreControllersText = $isStoreControllersText;
 
-    return new Scene(mapInfo, bots, false, timeout, onComplete, false, isShortReplay);
+    return new Scene(mapInfo, bots, false, timeout, onComplete, false, isShortReplay, isStoreControllersText);
 }
 
 let scene = InitScene();

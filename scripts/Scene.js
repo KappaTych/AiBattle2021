@@ -372,7 +372,7 @@ class Scene {
 
     static moves = [{ x: 0, y: -1 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: -1, y: 0 }, { x: 0, y: 0 }];
 
-    constructor(mapInfo, bots, isAsyncBotsInit = false, timeout = 10, onComplete = null, isBotInit = true, isShortLogs = false) {
+    constructor(mapInfo, bots, isAsyncBotsInit = false, timeout = 10, onComplete = null, isBotInit = true, isShortLogs = false, isStoreControllersText = true) {
         this.mapInfo = mapInfo;
         this.bots = bots;
         this.snowballs = [];
@@ -402,8 +402,9 @@ class Scene {
 
         this.logs = {
             mapStartState: this.mapInfo.GetSafeMapInfo(),
-            startBotsInfo: this.GetSafeBotInfo(),
+            startBotsInfo: this.GetSafeBotInfo(true, false, isStoreControllersText),
             turns: [],
+            isStoreControllersText: isStoreControllersText,
             isShort: isShortLogs,
         };
 
@@ -417,7 +418,7 @@ class Scene {
         }
     }
 
-    GetSafeBotInfo(isFull = true, onlyDir = false) {
+    GetSafeBotInfo(isFull = true, onlyDir = false, isStoreControllersText = true) {
         const bots = [];
         for (let i = 0; i < this.bots.length; ++i) {
             const bot = this.bots[i];
@@ -434,7 +435,8 @@ class Scene {
                 };
                 if (isFull) {
                     obj.color = bot.color;
-                    obj.controllerText = bot.controller.text;
+                    if (isStoreControllersText)
+                        obj.controllerText = bot.controller.text;
                 }
                 bots.push(obj);
             } else {
@@ -460,7 +462,7 @@ class Scene {
     }
 
     AddTurnToLogs() {
-        const turn = { botsInfo: this.GetSafeBotInfo(false, this.logs.isShort) };
+        const turn = { botsInfo: this.GetSafeBotInfo(false, this.logs.isShort, this.logs.isStoreControllersText) };
         if (!this.logs.isShort) {
             turn.snowLevelMapBeforeIncrease = this.snowLevelMapBeforeIncrease;
             turn.snowLevelMap = this.GetSnowLevelMap();

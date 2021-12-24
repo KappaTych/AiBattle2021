@@ -23,7 +23,8 @@ namespace AiBattle.TestServer
                                int InitTimeout,
                                int TurnTimeout,
                                bool IsLogging,
-                               bool IsShortReplay);
+                               bool IsShortReplay,
+                               bool IsStoreControllersText);
 
     public record SceneInitParams(Config Config, string[] BotPaths);
 
@@ -96,7 +97,9 @@ namespace AiBattle.TestServer
                                   names.ToString(),
                                   colors.ToString(),
                                   sceneInitParams.Config.InitTimeout,
-                                  "null", sceneInitParams.Config.IsShortReplay);
+                                  "null", 
+                                  sceneInitParams.Config.IsShortReplay,
+                                  sceneInitParams.Config.IsStoreControllersText);
 
             if (_isLogging)
                 _consoleLogs!.WriteToLogs(_script);
@@ -242,7 +245,8 @@ namespace AiBattle.TestServer
                                   string botColors,
                                   int timeout,
                                   string onComplete,
-                                  bool isShortReplay)
+                                  bool isShortReplay,
+                                  bool isStoreControllersText)
         => File.ReadAllText("SceneSimulator.js")
                .Replace("$mapInfo", mapInfo)
                .Replace("$controllerTexts", controllersTexts.Replace("\n", "").Replace("\r", ""))
@@ -250,7 +254,8 @@ namespace AiBattle.TestServer
                .Replace("$botColors", botColors)
                .Replace("$timeout", timeout.ToString())
                .Replace("$onComplete", onComplete)
-               .Replace("$isShortReplay", isShortReplay.ToString().ToLower());
+               .Replace("$isShortReplay", isShortReplay.ToString().ToLower())
+               .Replace("$isStoreControllersText", isStoreControllersText.ToString().ToLower());
 
         private void BotInit(int botIndex, out ScriptObject? bot)
         {
