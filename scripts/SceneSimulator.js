@@ -15,6 +15,10 @@ function SetBotController(scene, botIndex, controller) {
     return true;
 }
 
+function SetBotState(scene, botIndex, state) {
+    scene.bots[botIndex].SetState(state);
+}
+
 function InitScene() {
     let mapInfo = MapInfo.LoadMapFromJson($mapInfo);
 

@@ -22,16 +22,25 @@ class MovableObject extends VisibleGameObject {
 }
 
 class ControlledObject extends MovableObject {
-    constructor(x, y, dir, texture, controller, name) {
+    constructor(x, y, dir, texture, controller, name, state = "ok") {
         super(x, y, dir, texture)
         this.controller = controller;
         this.name = name;
+        this.state = state;
+    }
+
+    SetState(state) {
+        this.state = state;
+    }
+
+    GetState() {
+        return this.state;
     }
 }
 
 class Bot extends ControlledObject {
-    constructor(x, y, dir, controller, name, color) {
-        super(x, y, dir, ResourceLoader.LoadPng("resources/textures/bots/" + color + "Bot/" + "bot_" + 2 + "_" + 0 + ".png "), controller, name);
+    constructor(x, y, dir, controller, name, color, state = "ok") {
+        super(x, y, dir, ResourceLoader.LoadPng("resources/textures/bots/" + color + "Bot/" + "bot_" + 2 + "_" + 0 + ".png "), controller, name, state);
         this.lastDir = dir;
         this.texturesForDirAnim = [];
         this.color = color;

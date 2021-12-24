@@ -429,7 +429,8 @@ class Scene {
                     x: bot.x,
                     y: bot.y,
                     dir: bot.dir,
-                    controller: Clone(bot.controller.controllerObj)
+                    controller: Clone(bot.controller.controllerObj),
+                    state: bot.GetState()
                 };
                 if (isFull) {
                     obj.color = bot.color;
@@ -437,7 +438,7 @@ class Scene {
                 }
                 bots.push(obj);
             } else {
-                bots.push({ dir: bot.dir });
+                bots.push({ dir: bot.dir, state: bot.GetState() });
             }
         }
 
@@ -467,6 +468,7 @@ class Scene {
             turn.scores = this.CalcScores();
         }
         this.logs.turns.push(turn);
+        this.logs.lastCalcScore = this.CalcScores();
     }
 
     GetLogs() {
@@ -512,8 +514,10 @@ class Scene {
                 worker.terminate();
                 if (result.complete) {
                     CopyDataToObject(result.controller.controllerObj, scene.bots[botIndex].controller.controllerObj);
+                    scene.bots[botIndex].SetState("ok");
                 } else {
                     console.log("bot #" + botIndex + " init unsuccessful");
+                    scene.bots[botIndex].SetState("tl");
                 }
 
                 if (botIndex + 1 === scene.bots.length) {
@@ -566,8 +570,9 @@ class Scene {
         return new SceneInfoForController({ x: this.bots[botIndex].x, y: this.bots[botIndex].y }, enemies, this.GetSafeSnowballsInfo(), this.GetSnowLevelMap());
     }
 
-    UpdateDynamicLayerAfterBotChooseDirection(botIndex, dir) {
+    UpdateDynamicLayerAfterBotChooseDirection(botIndex, dir, state = "ok") {
         this.bots[botIndex].SetDirAndAnim(dir);
+        this.bots[botIndex].SetState(state);
 
         const newY = this.bots[botIndex].y + Scene.moves[dir].y;
         const newX = this.bots[botIndex].x + Scene.moves[dir].x;
@@ -630,7 +635,7 @@ class Scene {
     CalcScores() {
         const scores = [];
         for (let i = 0; i < this.bots.length; ++i) {
-            scores[i] = { value: 0, botName: this.bots[i].name, botColor: this.bots[i].color };
+            scores[i] = { value: 0, botName: this.bots[i].name, botColor: this.bots[i].color, state: this.bots[i].GetState() };
             for (let h = this.mapInfo.bases[i].topLeft.y; h <= this.mapInfo.bases[i].bottomRight.y; ++h) {
                 for (let w = this.mapInfo.bases[i].topLeft.x; w <= this.mapInfo.bases[i].bottomRight.x; ++w) {
                     if (this.dynamicLayer[h][w] !== null &&
@@ -720,12 +725,14 @@ class Scene {
             return this.CalcScores();
 
         for (let i = 0; i < this.bots.length; ++i) {
+            let state = "ok";
             let dir = this.bots[i].controller.controllerObj.GetDirection(this.PrepareDataForController(i));
             if (!(dir === 0 || dir === 1 || dir === 2 || dir === 3 || dir === 4)) {
                 console.warn("bad direction format " + this.bots[i].name);
                 dir = 4;
+                state = "tl";
             }
-            this.UpdateDynamicLayerAfterBotChooseDirection(i, dir);
+            this.UpdateDynamicLayerAfterBotChooseDirection(i, dir, state);
         }
 
         this.UpdateSnowOnFileds();
@@ -752,12 +759,12 @@ class Scene {
             timeout,
             function next(worker, result) {
                 worker.terminate();
-                if ((result.dir === 0 || result.dir === 1 || result.dir === 2 || result.dir === 3)) {
+                if ((result.dir === 0 || result.dir === 1 || result.dir === 2 || result.dir === 3 || result.dir === 4)) {
                     CopyDataToObject(result.controller.controllerObj, scene.bots[botIndex].controller.controllerObj);
-                    scene.UpdateDynamicLayerAfterBotChooseDirection(botIndex, result.dir);
+                    scene.UpdateDynamicLayerAfterBotChooseDirection(botIndex, result.dir, "ok");
                 } else {
                     console.warn("bot #" + botIndex + "wrong dir format");
-                    scene.UpdateDynamicLayerAfterBotChooseDirection(botIndex, 4)
+                    scene.UpdateDynamicLayerAfterBotChooseDirection(botIndex, 4, "tl")
                 }
 
                 if (botIndex + 1 === scene.bots.length) {

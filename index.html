@@ -560,7 +560,7 @@
             document.getElementById('turnsCount').innerHTML = gameScene.mapInfo.turns;
             let scores = gameScene.CalcScores()
             for (let i = 0; i < scores.length; ++i) {
-                GetDataFromBotInfoDiv(document.getElementById(scores[i].botName + "InfoDiv")).score.innerHTML = scores[i].value;
+                GetDataFromBotInfoDiv(document.getElementById(scores[i].botName + "InfoDiv")).score.innerHTML = scores[i].value + ":" + scores[i].state;
             }
         }
 

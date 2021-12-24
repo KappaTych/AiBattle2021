@@ -18,7 +18,8 @@ namespace AiBattle.TestServer
     }
 
     public record Config(string MapPath,
-                               string OutPath,
+                               string ScoreOutPath,
+                               string ReplayOutPath,
                                int InitTimeout,
                                int TurnTimeout,
                                bool IsLogging,
@@ -39,14 +40,14 @@ namespace AiBattle.TestServer
     {
         private static readonly string[] _colors =
         {
-        "black",
-        "blue",
-        "green",
-        "grey",
-        "pink",
-        "purple",
         "red",
-        "yellow"
+            "orange",
+            "yellow",
+            "green",
+            "blue",
+            "indigo",
+            "violet",
+            "white",
     };
 
         private bool _isInterupted = true;
@@ -59,7 +60,8 @@ namespace AiBattle.TestServer
         private readonly int _botCount;
         private readonly bool _isLogging;
         private readonly Logs? _consoleLogs;
-        private readonly string _outPath;
+        private readonly string _scoreOutPath;
+        private readonly string _replayOutPath;
         private string? _errMes;
 
         public Tester(SceneInitParams sceneInitParams)
@@ -68,7 +70,8 @@ namespace AiBattle.TestServer
             _turnTimeout = sceneInitParams.Config.TurnTimeout;
             _botCount = sceneInitParams.BotPaths.Length;
             _isLogging = sceneInitParams.Config.IsLogging;
-            _outPath = sceneInitParams.Config.OutPath;
+            _scoreOutPath = sceneInitParams.Config.ScoreOutPath;
+            _replayOutPath = sceneInitParams.Config.ReplayOutPath;
 
             if (_isLogging)
                 _consoleLogs = new(new());
@@ -120,7 +123,7 @@ namespace AiBattle.TestServer
                     if (ans != null)
                     {
                         var isSett = (bool)_engine.Evaluate($"SetBotController(scene,{i}, {_buffVar});");
-
+                        _engine.Evaluate($"SetBotState(scene,{i}, 'ok');");
                         if (_isLogging)
                         {
                             _consoleLogs!.WriteToLogs(isSett ?
@@ -130,6 +133,7 @@ namespace AiBattle.TestServer
                     }
                     else
                     {
+                        _engine.Evaluate($"SetBotState(scene,{i}, 'tl');");
                         if (_isLogging)
                             _consoleLogs!.WriteToLogs($"bot #{i} init failed");
                     }
@@ -152,7 +156,7 @@ namespace AiBattle.TestServer
                         WaitInterup();
                         if (ans != null)
                         {
-                            _engine.Evaluate($"scene.UpdateDynamicLayerAfterBotChooseDirection({i}, {_buffVar}.dir)");
+                            _engine.Evaluate($"scene.UpdateDynamicLayerAfterBotChooseDirection({i}, {_buffVar}.dir, 'ok')");
                             var isSet = (bool)_engine.Evaluate($"SetBotController(scene,{i}, {_buffVar}.controller);");
                             if (_isLogging)
                             {
@@ -163,6 +167,7 @@ namespace AiBattle.TestServer
                         }
                         else
                         {
+                            _engine.Evaluate($"scene.UpdateDynamicLayerAfterBotChooseDirection({i}, 4, 'tl')");
                             if (_isLogging)
                                 _consoleLogs!.WriteToLogs($"bot #{i} dirGet {turn} failed");
                         }
@@ -180,7 +185,7 @@ namespace AiBattle.TestServer
                 if (_isLogging)
                     _consoleLogs!.SaveLogsToFile();
 
-                File.WriteAllText("replay.json", (string)_engine.Evaluate("scene.GetLogs()"));
+                File.WriteAllText(_replayOutPath, (string)_engine.Evaluate("scene.GetLogs()"));
 
                 dynamic scores = (ScriptObject)_engine.Evaluate("scene.CalcScores()");
                 List<string> ans = new();
@@ -193,7 +198,7 @@ namespace AiBattle.TestServer
                     ans.Add(_errMes);
                 }
 
-                File.WriteAllLines(_outPath, ans);
+                File.WriteAllLines(_scoreOutPath, ans);
 
                 _engine.Dispose();
             }

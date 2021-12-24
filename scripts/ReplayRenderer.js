@@ -137,11 +137,9 @@ class ReplayRenderer {
             let prevSnowballInfo = prevTurnInfo.snowballs[i];
             let curSnowballInfo = curTurnInfo.snowballs[i];
 
-            if (prevSnowballInfo === undefined || prevSnowballInfo === undefined)
-                prevSnowballInfo = curSnowballInfo;
-
             if (this.snowballs[curSnowballInfo.id] === null || this.snowballs[curSnowballInfo.id] === undefined) {
-                if (animFrameIndex * 1.0 / this.animFrameCount > 0.8 || prevSnowballInfo.id === curSnowballInfo.id) {
+                if (animFrameIndex * 1.0 / this.animFrameCount > 0.8 ||
+                 (prevSnowballInfo !== null && prevSnowballInfo !== undefined && prevSnowballInfo.id === curSnowballInfo.id)) {
                     this.snowballs[curSnowballInfo.id] = new Snowball(curSnowballInfo.x, curSnowballInfo.y, curSnowballInfo.dir, curSnowballInfo.value);
                 }
             } else {
