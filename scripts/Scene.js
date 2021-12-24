@@ -294,7 +294,7 @@ class MapInfo {
                 }
 
                 for (let w = 0; w < width; ++w) {
-                    if (!ValidateNotNegativeNumber(obj.startSnowMap[h][w], "snowIncreaseValue " + w + " " + h)) {
+                    if (!ValidateNotNegativeNumber(obj.snowIncreaseValue[h][w], "snowIncreaseValue " + w + " " + h)) {
                         return false;
                     }
                 }
