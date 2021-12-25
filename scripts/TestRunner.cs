@@ -79,7 +79,8 @@ namespace AiBattle.TestServer
 
             StringBuilder controllersTexts = new();
             foreach (var path in sceneInitParams.BotPaths)
-                controllersTexts.Append($"'{File.ReadAllText(path)}',".Replace("\n", "\\n"));
+                controllersTexts.Append(
+                    "'" + File.ReadAllText(path).Replace("\n", "\\n").Replace("'", "\\'") + "',");
             controllersTexts.Remove(controllersTexts.Length - 1, 1);
 
             StringBuilder names = new();
