@@ -921,7 +921,7 @@ GetController();`;
             for (let i = 0; i < subAttempts.length; ++i) {
                 if (subAttempts[i].id) {
                     const a = await GetInfoFromSubmite(cid, sid, subAttempts[i].id);
-                    names.push(a.sources[0].orig_team);
+                    names.unshift(a.sources[0].orig_team);
                 }
             }
 
