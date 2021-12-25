@@ -787,19 +787,25 @@ function DrawText(context, text, x, y, tileSize, verticalOffset = null) {
 
     context.beginPath();
     let height = tileSize;
-    context.font = "normal " + height + "px Verdana";
+    context.font = "bold " + height + "px Verdana";
     let width = context.measureText(text).width;
 
     height *= 2 * tileSize / width;
     height = Math.min(height, maxTextHeigth);
     width = 2 * tileSize;
 
-    context.font = "normal " + height + "px Verdana";
+    context.font = "bold " + height + "px Verdana";
     context.fillStyle = "orange";
 
     if (verticalOffset === null)
         verticalOffset = height / 4;
 
     let realWidth = context.measureText(text).width;
-    context.fillText(text, x * tileSize + (tileSize - realWidth) / 2, y * tileSize + verticalOffset, width);
+    let tx = x * tileSize + (tileSize - realWidth) / 2;
+    let ty = y * tileSize + verticalOffset;
+    context.fillText(text, tx, ty, width);
+
+    context.strokeStyle = 'black';
+    context.lineWidth = 1;
+    context.strokeText(text, tx, ty, width);
 }
