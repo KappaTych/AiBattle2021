@@ -783,7 +783,7 @@ class Scene {
 }
 
 function DrawText(context, text, x, y, tileSize, verticalOffset = null) {
-    let maxTextHeigth = tileSize;
+    let maxTextHeigth = tileSize / 2;
 
     context.beginPath();
     let height = tileSize;
