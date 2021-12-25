@@ -898,7 +898,7 @@ GetController();`;
             let response = await fetch(url, {
                 method: 'GET'
             });
-            return await response.json();
+            return (await response.json()).filter(obj => obj.type === 'submit');
         }
 
         async function GetInfoFromSubmite(cid, sid, rid) {
@@ -919,10 +919,8 @@ GetController();`;
             let subAttempts = await LoadSubAttempts(cid, sid, rid);
             const names = [];
             for (let i = 0; i < subAttempts.length; ++i) {
-                if (subAttempts[i].id) {
-                    const a = await GetInfoFromSubmite(cid, sid, subAttempts[i].id);
-                    names.unshift(a.sources[0].orig_team);
-                }
+                const a = await GetInfoFromSubmite(cid, sid, subAttempts[i].id);
+                names.unshift(a.sources[0].orig_team);
             }
 
             response.json().then((ans) => {
@@ -1097,7 +1095,7 @@ GetController();`;
                 method: 'GET'
             });
 
-            return await response.json()
+            return (await response.json()).filter(obj => obj.type === 'submit');
         }
 
         let controllerEditor = null;
