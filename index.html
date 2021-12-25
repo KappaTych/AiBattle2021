@@ -919,8 +919,10 @@ GetController();`;
             let subAttempts = await LoadSubAttempts(cid, sid, rid);
             const names = [];
             for (let i = 0; i < subAttempts.length; ++i) {
-                const a = await GetInfoFromSubmite(cid, sid, subAttempts[i].id);
-                names.push(a.sources[0].orig_team);
+                if (subAttempts[i].id) {
+                    const a = await GetInfoFromSubmite(cid, sid, subAttempts[i].id);
+                    names.push(a.sources[0].orig_team);
+                }
             }
 
             response.json().then((ans) => {
