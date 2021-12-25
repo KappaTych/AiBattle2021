@@ -783,16 +783,16 @@ class Scene {
 }
 
 function DrawText(context, text, x, y, tileSize, verticalOffset = null) {
-    let maxTextHeigth = tileSize / 3;
+    let maxTextHeigth = tileSize;
 
     context.beginPath();
-    let height = tileSize / 10;
+    let height = tileSize;
     context.font = "normal " + height + "px Verdana";
     let width = context.measureText(text).width;
 
-    height *= tileSize / width;
+    height *= 2 * tileSize / width;
     height = Math.min(height, maxTextHeigth);
-    width = tileSize;
+    width = 2 * tileSize;
 
     context.font = "normal " + height + "px Verdana";
     context.fillStyle = "orange";
