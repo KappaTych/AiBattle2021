@@ -158,7 +158,7 @@ namespace AiBattle.TestServer
                         thread.Start();
                         thread.Join(_turnTimeout);
                         WaitInterup();
-                        if (ans != null)
+                        if (ans != null && ans.GetProperty("dir") is 0 or 1 or 2 or 3 or 4)
                         {
                             _engine.Evaluate($"scene.UpdateDynamicLayerAfterBotChooseDirection({i}, {_buffVar}.dir, 'ok')");
                             var isSet = (bool)_engine.Evaluate($"SetBotController(scene,{i}, {_buffVar}.controller);");
