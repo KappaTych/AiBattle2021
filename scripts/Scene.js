@@ -684,16 +684,16 @@ class Scene {
             }
         }
 
+        for (let i = 0; i < this.snowballs.length; ++i) {
+            const snowball = this.snowballs[i];
+            context.drawImage(snowball.texture, snowball.x * tileSize, snowball.y * tileSize, tileSize, tileSize);
+        }
+
         for (let i = 0; i < this.bots.length; ++i) {
             const bot = this.bots[i];
             context.beginPath();
             context.drawImage(bot.texture, bot.x * tileSize, bot.y * tileSize, tileSize, tileSize);
             DrawText(context, bot.name, bot.x, bot.y, tileSize)
-        }
-
-        for (let i = 0; i < this.snowballs.length; ++i) {
-            const snowball = this.snowballs[i];
-            context.drawImage(snowball.texture, snowball.x * tileSize, snowball.y * tileSize, tileSize, tileSize);
         }
 
         if (this.bots.length === 0) {
@@ -795,10 +795,10 @@ function DrawText(context, text, x, y, tileSize, verticalOffset = null) {
     width = tileSize;
 
     context.font = "normal " + height + "px Verdana";
-    context.fillStyle = "#000000";
+    context.fillStyle = "orange";
 
     if (verticalOffset === null)
-        verticalOffset = height / 2;
+        verticalOffset = height / 4;
 
     let realWidth = context.measureText(text).width;
     context.fillText(text, x * tileSize + (tileSize - realWidth) / 2, y * tileSize + verticalOffset, width);

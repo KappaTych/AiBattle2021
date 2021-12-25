@@ -139,7 +139,7 @@ class ReplayRenderer {
 
             if (this.snowballs[curSnowballInfo.id] === null || this.snowballs[curSnowballInfo.id] === undefined) {
                 if (animFrameIndex * 1.0 / this.animFrameCount > 0.8 ||
-                 (prevSnowballInfo !== null && prevSnowballInfo !== undefined && prevSnowballInfo.id === curSnowballInfo.id)) {
+                    (prevSnowballInfo !== null && prevSnowballInfo !== undefined && prevSnowballInfo.id === curSnowballInfo.id)) {
                     this.snowballs[curSnowballInfo.id] = new Snowball(curSnowballInfo.x, curSnowballInfo.y, curSnowballInfo.dir, curSnowballInfo.value);
                 }
             } else {

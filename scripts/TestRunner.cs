@@ -42,13 +42,13 @@ namespace AiBattle.TestServer
         private static readonly string[] _colors =
         {
         "red",
-            "orange",
+            "black",
             "yellow",
+            "grey",
             "green",
             "blue",
-            "indigo",
-            "violet",
-            "white",
+            "pink",
+            "purple"
     };
 
         private bool _isInterupted = true;
